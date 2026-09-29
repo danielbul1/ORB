@@ -1,0 +1,118 @@
+//@version=6
+// ORB v0 — Opening Range Breakout for NQ/MNQ, mirrors orb/backtest.py so TradingView can verify the Python engine.
+// Defaults = best rule set from the 2016-2026 study: 5-min OR candle direction, body >= 0.05 ATR, with the gap,
+// stop 0.10 x RTH ATR14, target 10R, else flat at 15:59.
+strategy("ORB v0", overlay = true, initial_capital = 100000, commission_type = strategy.commission.cash_per_contract,
+     commission_value = 2.5, slippage = 1,
+     default_qty_type = strategy.fixed, default_qty_value = 1, margin_long = 0, margin_short = 0)
+
+orMin    = input.int(5, "OR minutes", minval = 1)
+entryMd  = input.string("candle", "Entry", options = ["candle", "stop"])
+sideIn   = input.string("both", "Side", options = ["both", "long", "short"])
+stopMd   = input.string("atr", "Stop", options = ["atr", "or", "mid"])
+stopX    = input.float(0.10, "Stop x ATR14", step = 0.01)
+targetR  = input.float(10.0, "Target R (0 = none)", step = 0.5)
+cutoffM  = input.int(120, "Last entry (min after open)")
+gapWith  = input.bool(true, "Only trade with the gap")
+bodyMin  = input.float(0.05, "Min OR candle body x ATR14 (candle entry)", step = 0.01)
+beR      = input.float(0.0, "Breakeven at R (0 = off)", step = 0.5)
+
+TZ = "America/New_York"
+t = time(timeframe.period, "0930-1600", TZ)
+inRth = not na(t)
+minuteOfSession = (hour(time, TZ) * 60 + minute(time, TZ)) - (9 * 60 + 30)
+newDay = inRth and not inRth[1]
+barMin = timeframe.in_seconds() / 60
+barEnd = minuteOfSession + barMin  // minutes after the open when this bar closes
+
+// ATR(14) of RTH-only daily bars, prior days only (same as the Python engine).
+var float dH = na
+var float dL = na
+var float atr14 = na
+var trs = array.new_float()
+
+var float orH = na
+var float orL = na
+var float dayOpen = na
+var float prevClose = na
+var float lastRthClose = na
+var bool traded = false
+var float riskPts = na
+var float entryPx = na
+var int dir = 0
+var bool beOn = false
+
+if newDay
+    if not na(dH)
+        tr = na(prevClose) ? dH - dL : math.max(dH - dL, math.abs(dH - prevClose), math.abs(dL - prevClose))
+        array.push(trs, tr)
+        if array.size(trs) > 14
+            array.shift(trs)
+        atr14 := array.size(trs) == 14 ? array.avg(trs) : na
+    prevClose := lastRthClose
+    dH := high
+    dL := low
+    orH := high
+    orL := low
+    dayOpen := open
+    traded := false
+    dir := 0
+else if inRth and minuteOfSession < orMin
+    orH := math.max(orH, high)
+    orL := math.min(orL, low)
+if inRth
+    lastRthClose := close
+    dH := math.max(dH, high)
+    dL := math.min(dL, low)
+
+orDone = inRth and barEnd >= orMin
+gapDir = math.sign(dayOpen - prevClose)
+canEnter = orDone and not na(atr14) and not traded and strategy.position_size == 0 and minuteOfSession < cutoffM
+
+allow(d) => (sideIn == "both" or (sideIn == "long" and d > 0) or (sideIn == "short" and d < 0)) and (not gapWith or d == gapDir)
+
+stopFor(d, px) =>
+    stopMd == "atr" ? px - d * stopX * atr14 : stopMd == "or" ? (d > 0 ? orL - syminfo.mintick : orH + syminfo.mintick) : ((orH + orL) / 2 - d * syminfo.mintick)
+
+// Candle mode: at the close of the last OR bar, go in the direction of the OR candle at the next open.
+if entryMd == "candle" and canEnter and barEnd == orMin
+    d = int(math.sign(close - dayOpen))
+    if d != 0 and allow(d) and math.abs(close - dayOpen) >= bodyMin * atr14
+        dir := d
+        entryPx := close
+        riskPts := math.abs(entryPx - stopFor(d, entryPx))
+        strategy.entry(d > 0 ? "L" : "S", d > 0 ? strategy.long : strategy.short)
+        traded := true
+
+// Stop mode: resting stop orders one tick beyond the range.
+if entryMd == "stop" and canEnter
+    if allow(1)
+        strategy.entry("L", strategy.long, stop = orH + syminfo.mintick, oca_name = "orb", oca_type = strategy.oca.cancel)
+    if allow(-1)
+        strategy.entry("S", strategy.short, stop = orL - syminfo.mintick, oca_name = "orb", oca_type = strategy.oca.cancel)
+if entryMd == "stop" and (minuteOfSession >= cutoffM or not inRth)
+    strategy.cancel("L")
+    strategy.cancel("S")
+
+// Exits, based on the actual fill.
+if strategy.position_size != 0
+    d = strategy.position_size > 0 ? 1 : -1
+    if strategy.position_size != strategy.position_size[1]
+        traded := true
+        dir := d
+        entryPx := strategy.position_avg_price
+        riskPts := math.abs(entryPx - stopFor(d, entryPx))
+        beOn := false
+    stp = beOn ? entryPx : entryPx - d * riskPts
+    if beR > 0 and (d > 0 ? high - entryPx : entryPx - low) >= beR * riskPts
+        beOn := true
+    tgt = targetR > 0 ? entryPx + d * targetR * riskPts : na
+    strategy.exit("X", stop = stp, limit = tgt)
+
+// Flat at the last minute of the session.
+if strategy.position_size != 0 and ((inRth and barEnd >= 390) or not inRth)
+    strategy.close_all("EOD", immediately = true)
+
+plot(inRth ? orH : na, "OR high", color.new(color.teal, 0), style = plot.style_linebr)
+plot(atr14, "ATR14 RTH", display = display.data_window)
+plot(inRth ? orL : na, "OR low", color.new(color.red, 0), style = plot.style_linebr)

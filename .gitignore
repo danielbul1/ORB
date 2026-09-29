@@ -2,3 +2,9 @@
 vault/.obsidian/workspace*.json
 vault/.obsidian/cache
 vault/.trash/
+
+# local environment and heavy data
+.venv/
+__pycache__/
+data/*.csv
+data/*.npz

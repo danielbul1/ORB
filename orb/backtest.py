@@ -1,0 +1,227 @@
+"""Vectorized opening-range-breakout backtest over a Days matrix: one trade per day at most.
+
+Fill rules are deliberately pessimistic:
+  * stop entries fill at the level or at the bar open if price gapped through it;
+  * a stop and a target touched in the same bar count as the stop;
+  * the target is not allowed to fill on the entry bar, the stop is;
+  * every trade pays `cost` points round trip (slippage + commission).
+"""
+import numpy as np
+
+TICK = 0.25
+POINT_USD = 20.0  # NQ; MNQ is 2.0
+BIG = 10**6
+
+DEFAULTS = dict(
+    or_min=15,          # opening range length in minutes
+    entry="stop",       # stop: touch of OR +1 tick | close: 1m close beyond OR, fill next open | candle: OR candle direction at end of OR
+    side="both",        # both | long | short
+    stop="or",          # or: opposite side | mid: OR midpoint | atr: stop_x * ATR14 from entry
+    stop_x=0.1,
+    target_r=None,      # take profit in R, None = hold to time exit
+    cutoff=120,         # last minute (from 09:30) a new entry may fill
+    exit_min=389,       # time exit bar (389 = 15:59 close)
+    min_or_atr=0.0,     # skip if OR width / ATR14 below
+    max_or_atr=9.0,     # skip if OR width / ATR14 above
+    rvol_min=0.0,       # skip if OR volume / mean OR volume of prior 14 days below
+    gap_dir=None,       # with | against: only trade breakouts in / against the gap direction
+    dows=None,          # iterable of weekdays allowed (0=Mon)
+    be_r=None,          # move stop to entry after price reaches be_r R
+    body_min=0.0,       # candle entry: skip if |OR close - open| / ATR14 below
+    vol_regime=0.0,     # skip unless ATR14 / ATR100 >= this
+    nr=None,            # 4 | 7: only trade after an NR4 / NR7 day
+    stretch_n=10,       # stretch entry: lookback of mean min(H-O, O-L)
+    stretch_m=1.0,      # stretch entry: levels at open +- m * stretch
+    cost=1.0,           # points round trip
+)
+
+
+def _first(mask):
+    i = mask.argmax(1)
+    i[~mask.any(1)] = BIG
+    return i
+
+
+def daily(d):
+    """Per-day RTH high/low/close/TR and derived context, cached on the Days object."""
+    if getattr(d, "_daily", None) is None:
+        rows = np.arange(len(d.dates))
+        dh, dl = d.h.max(1), d.l.min(1)
+        dc = d.c[rows, d.last]
+        rng = dh - dl
+        tr = np.maximum(rng, np.maximum(abs(dh - d.prev_close), abs(dl - d.prev_close)))
+        tr = np.where(np.isfinite(tr), tr, rng)
+        def prior_mean(x, n):
+            m = np.convolve(x, np.ones(n) / n, "full")[:len(x)]
+            m[:n - 1] = np.nan
+            return np.r_[np.nan, m[:-1]]
+        def prior_nr(n):  # yesterday's range is the smallest of the last n
+            out = np.zeros(len(rng), bool)
+            for i in range(n, len(rng)):
+                out[i] = rng[i - 1] <= rng[i - n:i].min()
+            return out
+        stretch_src = np.minimum(dh - d.o[:, 0], d.o[:, 0] - dl)
+        d._daily = dict(atr100=prior_mean(tr, 100), nr4=prior_nr(4), nr7=prior_nr(7),
+                        stretch={n: prior_mean(stretch_src, n) for n in (5, 10, 20)})
+    return d._daily
+
+
+def run(d, **p):
+    p = {**DEFAULTS, **p}
+    ctx = daily(d)
+    D, B = d.o.shape
+    rows = np.arange(D)
+    idx = np.arange(B)[None, :]
+    k = p["or_min"]
+    orh = d.h[:, :k].max(1)
+    orl = d.l[:, :k].min(1)
+    width = orh - orl
+    atr = d.atr14
+    cutoff = np.minimum(p["cutoff"], d.last - 1)[:, None]
+    window = (idx >= k) & (idx <= cutoff)
+
+    # --- entry -------------------------------------------------------------
+    if p["entry"] == "stop":
+        up, dn = orh + TICK, orl - TICK
+        jl = _first(window & (d.h >= up[:, None]))
+        js = _first(window & (d.l <= dn[:, None]))
+        direction = np.where(jl < js, 1, np.where(js < jl, -1, 0))  # same bar = ambiguous, skip
+        e = np.minimum(jl, js)
+        ec = np.minimum(e, B - 1)
+        px_l = np.maximum(up, d.o[rows, ec])
+        px_s = np.minimum(dn, d.o[rows, ec])
+        entry = np.where(direction > 0, px_l, px_s)
+    elif p["entry"] == "close":
+        jl = _first(window & (d.c > orh[:, None]))
+        js = _first(window & (d.c < orl[:, None]))
+        direction = np.where(jl < js, 1, np.where(js < jl, -1, 0))
+        e = np.minimum(jl, js) + 1
+        e = np.where(e <= cutoff[:, 0] + 1, e, BIG)
+        entry = d.o[rows, np.minimum(e, B - 1)]
+    elif p["entry"] == "stretch":
+        st = ctx["stretch"][p["stretch_n"]]
+        up = np.round((d.o[:, 0] + p["stretch_m"] * st) / TICK) * TICK
+        dn = np.round((d.o[:, 0] - p["stretch_m"] * st) / TICK) * TICK
+        orh, orl = up - TICK, dn + TICK  # the opposite level is the stop ("or")
+        w = (idx >= 0) & (idx <= cutoff)
+        jl = _first(w & (d.h >= up[:, None]))
+        js = _first(w & (d.l <= dn[:, None]))
+        direction = np.where(jl < js, 1, np.where(js < jl, -1, 0))
+        e = np.minimum(jl, js)
+        ec = np.minimum(e, B - 1)
+        entry = np.where(direction > 0, np.maximum(up, d.o[rows, ec]), np.minimum(dn, d.o[rows, ec]))
+        width = up - dn
+    elif p["entry"] == "candle":
+        body = d.c[:, k - 1] - d.o[:, 0]
+        direction = np.sign(body).astype(int)
+        e = np.full(D, k)
+        entry = d.o[:, k]
+    else:
+        raise ValueError(p["entry"])
+
+    ok = (e < BIG) & (direction != 0) & np.isfinite(atr) & (e < d.last)
+    if p["side"] == "long":
+        ok &= direction > 0
+    elif p["side"] == "short":
+        ok &= direction < 0
+
+    # --- filters (all known at entry time) -----------------------------------
+    if p["body_min"] > 0:
+        ok &= np.abs(d.c[:, k - 1] - d.o[:, 0]) / atr >= p["body_min"]
+    if p["vol_regime"] > 0:
+        ok &= atr / ctx["atr100"] >= p["vol_regime"]
+    if p["nr"]:
+        ok &= ctx[f"nr{p['nr']}"]
+    ratio = width / atr
+    ok &= (ratio >= p["min_or_atr"]) & (ratio <= p["max_or_atr"])
+    if p["rvol_min"] > 0:
+        orv = d.v[:, :k].sum(1)
+        mean = np.convolve(orv, np.ones(14) / 14, "full")[:D]
+        prior = np.r_[np.nan, mean[:-1]]
+        prior[:14] = np.nan
+        ok &= orv / prior >= p["rvol_min"]
+    if p["gap_dir"]:
+        gap = np.sign(d.o[:, 0] - d.prev_close)
+        ok &= (direction == gap) if p["gap_dir"] == "with" else (direction == -gap)
+    if p["dows"] is not None:
+        ok &= np.isin(d.dow, list(p["dows"]))
+
+    # --- stop / target -------------------------------------------------------
+    if p["stop"] == "or":
+        stop = np.where(direction > 0, orl - TICK, orh + TICK)
+    elif p["stop"] == "mid":
+        stop = np.where(direction > 0, (orh + orl) / 2 - TICK, (orh + orl) / 2 + TICK)
+    elif p["stop"] == "atr":
+        stop = entry - direction * p["stop_x"] * atr
+    else:
+        raise ValueError(p["stop"])
+    risk = (entry - stop) * direction
+    ok &= risk > 0
+    tgt = entry + direction * p["target_r"] * risk if p["target_r"] else None
+
+    ec = np.where(ok, e, 0)[:, None]
+    after = idx >= ec
+    x_end = np.minimum(p["exit_min"], d.last)
+    live = after & (idx <= x_end[:, None])
+    dcol = direction[:, None]
+    hit_stop = live & np.where(dcol > 0, d.l <= stop[:, None], d.h >= stop[:, None])
+
+    if p["be_r"]:
+        trig = entry + direction * p["be_r"] * risk
+        jb = _first(live & (idx > ec) & np.where(dcol > 0, d.h >= trig[:, None], d.l <= trig[:, None]))
+        be_stop = live & (idx > jb[:, None]) & np.where(dcol > 0, d.l <= entry[:, None], d.h >= entry[:, None])
+        j_orig = _first(hit_stop)
+        j_be = _first(be_stop)
+        use_be = j_be < j_orig
+        js_ = np.where(use_be, j_be, j_orig)
+        stop_px = np.where(use_be, entry, stop)
+    else:
+        js_ = _first(hit_stop)
+        stop_px = stop
+
+    if tgt is not None:
+        hit_t = live & (idx > ec) & np.where(dcol > 0, d.h >= tgt[:, None], d.l <= tgt[:, None])
+        jt = _first(hit_t)
+    else:
+        jt = np.full(D, BIG)
+
+    jx = x_end
+    first = np.minimum(np.minimum(js_, jt), jx)
+    fc = np.minimum(first, B - 1)
+    o_at = d.o[rows, fc]
+    stop_fill = np.where(direction > 0, np.minimum(stop_px, o_at), np.maximum(stop_px, o_at))
+    exit_px = np.where(first == js_, stop_fill,
+                       np.where(first == jt, tgt if tgt is not None else 0.0, d.c[rows, fc]))
+    pnl = direction * (exit_px - entry) - p["cost"]
+    r = pnl / np.where(risk > 0, risk, np.nan)
+
+    return dict(ok=ok, dir=direction, entry=entry, stop=stop, risk=risk, e=e, x=first,
+                exit=exit_px, pnl=np.where(ok, pnl, 0.0), r=np.where(ok, r, 0.0),
+                reason=np.where(first == js_, "stop", np.where(first == jt, "target", "time")))
+
+
+def metrics(d, res, mask=None):
+    ok = res["ok"] if mask is None else res["ok"] & mask
+    dates = d.dates if mask is None else d.dates
+    n = int(ok.sum())
+    if n == 0:
+        return dict(n=0)
+    r = res["r"][ok]
+    pts = res["pnl"][ok]
+    days_r = np.where(ok, res["r"], 0.0)[mask if mask is not None else slice(None)]
+    eq = np.cumsum(days_r)
+    dd = (np.maximum.accumulate(eq) - eq).max()
+    wins, losses = r[r > 0].sum(), -r[r < 0].sum()
+    years = (dates[mask][-1] - dates[mask][0]).astype(int) / 365.25 if mask is not None else \
+        (dates[-1] - dates[0]).astype(int) / 365.25
+    return dict(
+        n=n,
+        win=round(float((r > 0).mean()), 3),
+        avgR=round(float(r.mean()), 3),
+        pf=round(float(wins / losses), 2) if losses else float("inf"),
+        totR=round(float(r.sum()), 1),
+        sharpe=round(float(days_r.mean() / days_r.std() * np.sqrt(252)), 2) if days_r.std() else 0.0,
+        ddR=round(float(dd), 1),
+        pts=round(float(pts.sum()), 0),
+        rPerYr=round(float(r.sum() / max(years, 1e-9)), 1),
+    )
