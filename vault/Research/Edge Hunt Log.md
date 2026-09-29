@@ -130,3 +130,15 @@ ES is back-adjusted, with a 0.5 pt (2-tick) round trip, over 2016–2026:
 - Ensemble v2 yearly Sharpe on ES ranges from −2.1 to +2.6: unstable. Its daily correlation with NQ is 0.52, so ES adds no diversification.
 - At a 1 pt cost, v2 shows a *higher* ES Sharpe (0.41), because the stop-size floor then skips ES's small-stop days, and those were the losing days in quiet years.
 - **Conclusion:** the Edge is Nasdaq-specific, which is consistent with the tech-momentum and leveraged-ETF mechanism (ORB-5 Sharpe vs leveraged-ETF share: +0.6). Trade NQ/MNQ only; ES stays a control, not a market.
+
+## arXiv ideas tested → Ensemble v3 (2026-09-29)
+Source: [[arXiv ORB Sweep]]. Scored on the 23-year base, Sharpe A 2003–15 / B 2016–24 / 2025–26:
+| Idea | Ensemble v2 → | ORB v1 → | Verdict |
+|---|---|---|---|
+| Base | 0.92 / 1.64 / 0.49 | −0.06 / 1.47 / 1.21 | |
+| **N1 trend-strength gate** τ ≥ 1.0 (5-min σ, 20 days) | **0.98 / 1.65 / 0.72**; Score $2,803 → **$3,576**; drawdown 20.2 → 14.6R; streak 21 → 18 | mixed | ✅ **adopted = Ensemble v3**. It's a plateau: τ 0.75–1.5 and a 20- or 60-day window all improve |
+| N2 earlier exit on VVG days (big gap + big first 30m + high volume) | ±0.02 | ±0.03 | ❌ no effect |
+| N4 leveraged-ETF pressure gate (κ·\|gap\|) | B 1.64 → 1.44–1.51 | B 1.47 → 0.75–1.08 | ❌ hurts. The yearly link to leveraged-ETF volume is real, but it doesn't pick days |
+| N3 same-slot persistence | On NQ it **reverses** (opposite to stocks): t −2.2 to −3.3 at k = 10–20 days in both eras. As a filter, A 0.76 and 25–26 −0.01 | | ❌ real effect, not tradable |
+
+**Ensemble v3** = `orb.families.ENSEMBLE_V3`. It is in the Forward Test (column `ensemble_v3_r`) and in TradingView "ORB Ensemble", with parity on 09-28. The earlier days are TradingView warm-up, since σ needs 20 days of 5-minute history.

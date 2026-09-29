@@ -209,3 +209,9 @@ ENSEMBLE_V2 = dict(ORB_V1, ema_n=200, min_risk_cost=4, trail_x=0.3, trail_start=
 def ensemble_v2(d, **p):
     xs = [np.where((r := run(d, **{**ENSEMBLE_V2, "or_min": om, **p}))["ok"], r["r"], 0.0) for om in ENSEMBLE_MEMBERS]
     return sum(xs) / len(xs)
+
+
+# Ensemble v3 (2026-09-29): Ensemble v2 + the arXiv trend-strength gate (2501.16772): a member trades only if the
+# move from the 09:30 open to its entry is >= 1.0 x the 5-minute return volatility (prior 20 days) x sqrt(k/5)
+# in the trade's direction. Improved all eras, the Score and the drawdown.
+ENSEMBLE_V3 = dict(ENSEMBLE_V2, tau_min=1.0, tau_win=20)

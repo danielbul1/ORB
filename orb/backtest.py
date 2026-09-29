@@ -41,6 +41,8 @@ DEFAULTS = dict(
     trail_start=2.0,    # trailing stop arms once the trade has been this many R in profit
     min_risk_cost=0.0,  # skip if the stop distance is below this multiple of the round-trip cost
     dir_override=None,  # research control only: per-Session direction array replacing the signal (after filters)
+    tau_min=0.0,        # trend-strength gate (arXiv 2501.16772): direction * ln(C_k/O) / (sigma5 * sqrt(k/5)) >= tau_min
+    tau_win=20,         # days of 5-minute return volatility (sigma5) averaged, prior days only
     vwap_side=False,    # entry bar's prior close must be on the trade side of session VWAP
     ema_n=0,            # prior close must be on the trade side of EMA(n) of 1m closes
     htf_side=False,     # prior day close on the trade side of its 20-day SMA
@@ -87,7 +89,10 @@ def daily(d):
         vwap = np.cumsum(tp * d.v, 1) / np.maximum(np.cumsum(d.v, 1), 1e-9)
         sma20 = pd.Series(dc).rolling(20).mean().values
         htf = np.sign(np.r_[np.nan, (dc - sma20)[:-1]])  # sign of yesterday's close vs its 20d SMA
-        d._daily = dict(atr100=prior_mean(tr, 100), nr4=prior_nr(4), nr7=prior_nr(7),
+        c5 = d.c[:, 4::5]  # 5-minute closes (bar ends 09:34, 09:39, ...)
+        sig5_day = np.nanstd(np.diff(np.log(c5), axis=1), axis=1)
+        sig5 = {n: pd.Series(sig5_day).rolling(n).mean().shift(1).values for n in (20, 60)}
+        d._daily = dict(atr100=prior_mean(tr, 100), nr4=prior_nr(4), nr7=prior_nr(7), sig5=sig5,
                         ema=ema, rsi=rsi, vwap=vwap, htf=htf,
                         pdh=np.r_[np.nan, dh[:-1]], pdl=np.r_[np.nan, dl[:-1]],
                         stretch={n: prior_mean(stretch_src, n) for n in (5, 10, 20)})
@@ -165,6 +170,9 @@ def run(d, **p):
         ok &= direction < 0
 
     # --- filters (all known at entry time) -----------------------------------
+    if p["tau_min"] > 0:
+        tau = np.log(d.c[:, k - 1] / d.o[:, 0]) / (ctx["sig5"][p["tau_win"]] * np.sqrt(k / 5))
+        ok &= direction * tau >= p["tau_min"]
     if p["body_min"] > 0:
         ok &= np.abs(d.c[:, k - 1] - d.o[:, 0]) / atr >= p["body_min"]
     if p["vol_regime"] > 0:

@@ -13,3 +13,4 @@ data/*.npz
 research/community/*.pine
 jev_cache/
 data/ext/
+data/news/

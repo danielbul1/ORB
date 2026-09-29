@@ -20,7 +20,7 @@ from lse import LSE  # noqa: E402
 from engine.data_lse import download  # noqa: E402
 from orb.backtest import run  # noqa: E402
 from orb.data import build  # noqa: E402
-from orb.families import ENSEMBLE_MEMBERS, ENSEMBLE_V2, ORB_V1  # noqa: E402
+from orb.families import ENSEMBLE_MEMBERS, ENSEMBLE_V3, ORB_V1  # noqa: E402
 
 START = np.datetime64("2026-09-30")
 LOG = ROOT / "results" / "forward_log.csv"
@@ -37,8 +37,8 @@ with tempfile.TemporaryDirectory() as tmp:
     d = build(csv)
 
 res = run(d, **ORB_V1)
-# Ensemble v2 (orb.families.ENSEMBLE_V2 on 5/15/30/60-min ranges, 1/4 risk each) is forward-tested alongside.
-ens = {om: run(d, **{**ENSEMBLE_V2, "or_min": om}) for om in ENSEMBLE_MEMBERS}
+# Ensemble v3 (orb.families.ENSEMBLE_V3 on 5/15/30/60-min ranges, 1/4 risk each) is forward-tested alongside.
+ens = {om: run(d, **{**ENSEMBLE_V3, "or_min": om}) for om in ENSEMBLE_MEMBERS}
 rows = []
 for i, day in enumerate(d.dates):
     if day < START or d.last[i] < 389 and day == np.datetime64(today.date()):
@@ -53,14 +53,14 @@ for i, day in enumerate(d.dates):
         reason=str(res["reason"][i]) if traded else "",
         r=round(float(res["r"][i]), 3) if traded else 0.0,
         risk_usd_1mnq=round(float(res["risk"][i]) * MNQ_USD, 2) if traded else None,
-        ensemble_v2_r=round(float(sum(np.where(e["ok"][i], e["r"][i], 0.0) for e in ens.values()) / 4), 3),
+        ensemble_v3_r=round(float(sum(np.where(e["ok"][i], e["r"][i], 0.0) for e in ens.values()) / 4), 3),
     ))
 new = pd.DataFrame(rows, columns=["session", "traded", "direction", "entry", "stop", "exit", "reason", "r",
-                                   "risk_usd_1mnq", "ensemble_v2_r"])
+                                   "risk_usd_1mnq", "ensemble_v3_r"])
 old = pd.read_csv(LOG) if LOG.exists() else pd.DataFrame(columns=new.columns)
 log = pd.concat([old[~old.session.isin(new.session)], new]).sort_values("session")
 LOG.parent.mkdir(exist_ok=True)
 log.to_csv(LOG, index=False)
 t = log[log.traded == True]  # noqa: E712
 print(f"Forward Test: {len(log)} Sessions | ORB v1: {len(t)} trades, total {t.r.sum():+.2f}R, "
-      f"win {(t.r > 0).mean() if len(t) else 0:.0%} | Ensemble v2: total {log.ensemble_v2_r.sum():+.2f}R")
+      f"win {(t.r > 0).mean() if len(t) else 0:.0%} | Ensemble v3: total {log.ensemble_v3_r.sum():+.2f}R")
