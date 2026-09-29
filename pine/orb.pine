@@ -96,6 +96,8 @@ if entryMd == "candle" and canEnter and barEnd == orMin
              ',"stop":' + str.tostring(entryPx - d * riskPts, format.mintick) +
              ',"target":' + str.tostring(entryPx + d * targetR * riskPts, format.mintick) + ',"rule":"ORB v1"}'
         strategy.entry(d > 0 ? "L" : "S", d > 0 ? strategy.long : strategy.short, qty = qty, alert_message = msg)
+        // Protect the fill bar too: bracket from the expected fill, refined from the real fill afterwards.
+        strategy.exit("X", stop = entryPx - d * riskPts, limit = targetR > 0 ? entryPx + d * targetR * riskPts : na)
         traded := true
 
 // Stop mode: resting stop orders one tick beyond the range.

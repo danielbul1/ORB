@@ -1,0 +1,100 @@
+//@version=6
+// ORB Ensemble — the ORB v1 rules on four opening-range lengths (5/15/30/60 min), each an independent sub-trade.
+// Mirrors orb/families.py ORB_V1 + tools/forward_test.py ensemble so TradingView can verify the Python engine.
+// Per member: direction = sign(close at end of range - 09:30 open); trade only if it agrees with the overnight
+// gap, |body| >= 0.05 x RTH ATR14 and price is on the trade side of RTH VWAP. Enter at the next bar open,
+// stop 0.10 x ATR14, target 10R, else flat at 15:59. Use a 5-minute (or 1-minute) chart.
+strategy("ORB Ensemble", overlay = true, initial_capital = 100000, pyramiding = 4, close_entries_rule = "ANY",
+     commission_type = strategy.commission.cash_per_contract, commission_value = 0.62, slippage = 1,
+     default_qty_type = strategy.fixed, default_qty_value = 1, margin_long = 0, margin_short = 0)
+
+stopX    = input.float(0.10, "Stop x ATR14", step = 0.01)
+targetR  = input.float(10.0, "Target R (0 = none)", step = 0.5)
+bodyMin  = input.float(0.05, "Min body x ATR14", step = 0.01)
+vwapSide = input.bool(true, "Only trade on the trade side of RTH VWAP")
+riskUsd  = input.float(100, "Risk per member trade (USD), min 1 contract", step = 10)
+use5     = input.bool(true, "Member: 5-min range")
+use15    = input.bool(true, "Member: 15-min range")
+use30    = input.bool(true, "Member: 30-min range")
+use60    = input.bool(true, "Member: 60-min range")
+
+TZ = "America/New_York"
+inRth = not na(time(timeframe.period, "0930-1600", TZ))
+minuteOfSession = (hour(time, TZ) * 60 + minute(time, TZ)) - (9 * 60 + 30)
+barEnd = minuteOfSession + timeframe.in_seconds() / 60
+newDay = inRth and not inRth[1]
+
+// RTH daily ATR(14) of prior days, RTH VWAP, prior RTH close.
+var float dH = na
+var float dL = na
+var float atr14 = na
+var trs = array.new_float()
+var float dayOpen = na
+var float prevClose = na
+var float lastRthClose = na
+var float pv = 0.0
+var float vol = 0.0
+var lens = array.from(5, 15, 30, 60)
+var done = array.new_bool(4, false)
+
+if newDay
+    if not na(dH)
+        tr = na(prevClose) ? dH - dL : math.max(dH - dL, math.abs(dH - prevClose), math.abs(dL - prevClose))
+        array.push(trs, tr)
+        if array.size(trs) > 14
+            array.shift(trs)
+        atr14 := array.size(trs) == 14 ? array.avg(trs) : na
+    prevClose := lastRthClose
+    dayOpen := open
+    dH := high
+    dL := low
+    pv := 0.0
+    vol := 0.0
+    for i = 0 to 3
+        array.set(done, i, false)
+if inRth
+    dH := math.max(dH, high)
+    dL := math.min(dL, low)
+    pv += hlc3 * volume
+    vol += volume
+    lastRthClose := close
+rthVwap = vol > 0 ? pv / vol : na
+gapDir = math.sign(dayOpen - prevClose)
+enabled = array.from(use5, use15, use30, use60)
+
+// Entries: at the close of the bar that completes a member's range, go at the next open.
+if inRth and not na(atr14)
+    for i = 0 to 3
+        len = array.get(lens, i)
+        if array.get(enabled, i) and not array.get(done, i) and barEnd == len
+            array.set(done, i, true)
+            d = int(math.sign(close - dayOpen))
+            okBody = math.abs(close - dayOpen) >= bodyMin * atr14
+            okVwap = not vwapSide or d * (close - rthVwap) > 0
+            if d != 0 and d == gapDir and okBody and okVwap
+                riskPts = stopX * atr14
+                qty = math.max(1, math.floor(riskUsd / (riskPts * syminfo.pointvalue)))
+                id = "E" + str.tostring(len)
+                msg = '{"ticker":"' + syminfo.ticker + '","action":"' + (d > 0 ? "buy" : "sell") + '","qty":' +
+                     str.tostring(qty) + ',"member":' + str.tostring(len) + ',"rule":"ORB Ensemble"}'
+                strategy.entry(id, d > 0 ? strategy.long : strategy.short, qty = qty, alert_message = msg)
+                // Protect the fill bar too: bracket from the expected fill, refined from the real fill below.
+                strategy.exit("X" + id, from_entry = id, stop = close - d * riskPts,
+                     limit = targetR > 0 ? close + d * targetR * riskPts : na)
+
+// Exits per open member trade, from its own fill price.
+if strategy.opentrades > 0 and not na(atr14)
+    for t = 0 to strategy.opentrades - 1
+        id = strategy.opentrades.entry_id(t)
+        px = strategy.opentrades.entry_price(t)
+        d = strategy.opentrades.size(t) > 0 ? 1 : -1
+        riskPts = stopX * atr14
+        strategy.exit("X" + id, from_entry = id, stop = px - d * riskPts,
+             limit = targetR > 0 ? px + d * targetR * riskPts : na,
+             alert_message = '{"ticker":"' + syminfo.ticker + '","action":"exit","member":"' + id + '","rule":"ORB Ensemble"}')
+
+if strategy.position_size != 0 and ((inRth and barEnd >= 390) or not inRth)
+    strategy.close_all("EOD", immediately = true, alert_message = '{"ticker":"' + syminfo.ticker + '","action":"exit_eod","rule":"ORB Ensemble"}')
+
+plot(atr14, "ATR14 RTH", display = display.data_window)
+plot(inRth ? rthVwap : na, "RTH VWAP", color.new(color.orange, 30), style = plot.style_linebr)

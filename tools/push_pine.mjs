@@ -1,6 +1,6 @@
 // Push a local .pine file into the open TradingView Pine editor and update it on the chart.
-// Refuses unless the editor already holds a ORB script, so it can't overwrite anything else.
-// Usage: node tools/push_pine.mjs pine/botmax_v0.pine
+// Refuses unless the open script declares the same strategy/indicator title as the file, so one script
+// can never be pushed over another. Usage: node tools/push_pine.mjs pine/orb.pine
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
@@ -24,8 +24,10 @@ for (let i = 0; i < 20 && !text.trim(); i++) {
   text = current.source ?? current.code ?? '';
   if (!text.trim()) await new Promise((r) => setTimeout(r, 250));
 }
-if (!/ORB/.test(text.slice(0, 2000))) {
-  console.error('ABORT: the open editor script is not a ORB script.');
+const titleOf = (src) => (src.match(/\b(?:strategy|indicator)\(\s*"([^"]+)"/) || [])[1];
+const want = titleOf(source);
+if (!want || titleOf(text) !== want) {
+  console.error(`ABORT: the open editor script is "${titleOf(text)}", not "${want}".`);
   process.exit(1);
 }
 await pine.setSource({ source });

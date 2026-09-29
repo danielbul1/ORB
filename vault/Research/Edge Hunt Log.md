@@ -93,3 +93,9 @@ The top 25 are all **opening-candle direction + with the gap + ATR stop on a 30â
 ### Status
 - **Forward Test** (from 2026-09-30): both **ORB v1** and the **Ensemble** are logged daily by `tools/forward_test.py` (Windows task "ORB Forward Test", weekdays 23:30 local time).
 - **Deflated Sharpe** of ORB v1 in-sample is about 0.79, so no real money until the Forward Test agrees.
+
+## ORB Ensemble in TradingView (2026-09-29)
+- The new saved script **"ORB Ensemble"** (`pine/orb_ensemble.pine`) runs on MNQ1! 5m next to "ORB v0". It has 4 members (E5 / E15 / E30 / E60) with pyramiding 4 and `close_entries_rule = "ANY"`, so each member's exit closes its own entry. Each member risks $100, with a minimum of 1 MNQ. Every entry and exit carries an alert message.
+- **Parity with Python on 2026-09-21 â€¦ 09-28:** all 14 TradingView trades match the engine's members, with entries within a tick and exits within about 1 point. One Python trade (09-28, 30m) was skipped in TradingView because price was only 1.2 pt on the VWAP side; TradingView's VWAP comes from MNQ 5m bars, the engine's from NQ 1m. Expect rare borderline differences like this.
+- **Bug fixed in both scripts:** the stop and target were placed only after TradingView saw the fill, so the fill bar itself was unprotected (on 09-25 E30 lost 96 pt instead of about 39). Now the bracket goes in with the entry order and is refined from the real fill afterwards.
+- `tools/push_pine.mjs` now refuses unless the open script's strategy title equals the file's, so one ORB script can never be pushed over another.
