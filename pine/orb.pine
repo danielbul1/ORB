@@ -17,6 +17,7 @@ gapWith  = input.bool(true, "Only trade with the gap")
 vwapSide = input.bool(true, "Only trade on the trade side of RTH VWAP")
 bodyMin  = input.float(0.05, "Min OR candle body x ATR14 (candle entry)", step = 0.01)
 beR      = input.float(0.0, "Breakeven at R (0 = off)", step = 0.5)
+riskUsd  = input.float(100, "Risk per trade (USD); 0 = fixed 1 contract", step = 10)
 
 TZ = "America/New_York"
 t = time(timeframe.period, "0930-1600", TZ)
@@ -89,7 +90,12 @@ if entryMd == "candle" and canEnter and barEnd == orMin
         dir := d
         entryPx := close
         riskPts := math.abs(entryPx - stopFor(d, entryPx))
-        strategy.entry(d > 0 ? "L" : "S", d > 0 ? strategy.long : strategy.short)
+        qty = riskUsd > 0 ? math.max(1, math.floor(riskUsd / (riskPts * syminfo.pointvalue))) : 1
+        side = d > 0 ? "buy" : "sell"
+        msg = '{"ticker":"' + syminfo.ticker + '","action":"' + side + '","qty":' + str.tostring(qty) +
+             ',"stop":' + str.tostring(entryPx - d * riskPts, format.mintick) +
+             ',"target":' + str.tostring(entryPx + d * targetR * riskPts, format.mintick) + ',"rule":"ORB v1"}'
+        strategy.entry(d > 0 ? "L" : "S", d > 0 ? strategy.long : strategy.short, qty = qty, alert_message = msg)
         traded := true
 
 // Stop mode: resting stop orders one tick beyond the range.
@@ -115,11 +121,11 @@ if strategy.position_size != 0
     if beR > 0 and (d > 0 ? high - entryPx : entryPx - low) >= beR * riskPts
         beOn := true
     tgt = targetR > 0 ? entryPx + d * targetR * riskPts : na
-    strategy.exit("X", stop = stp, limit = tgt)
+    strategy.exit("X", stop = stp, limit = tgt, alert_message = '{"ticker":"' + syminfo.ticker + '","action":"exit","rule":"ORB v1"}')
 
 // Flat at the last minute of the session.
 if strategy.position_size != 0 and ((inRth and barEnd >= 390) or not inRth)
-    strategy.close_all("EOD", immediately = true)
+    strategy.close_all("EOD", immediately = true, alert_message = '{"ticker":"' + syminfo.ticker + '","action":"exit_eod","rule":"ORB v1"}')
 
 plot(inRth ? orH : na, "OR high", color.new(color.teal, 0), style = plot.style_linebr)
 plot(atr14, "ATR14 RTH", display = display.data_window)

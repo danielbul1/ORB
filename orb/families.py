@@ -124,3 +124,77 @@ def orb_regime(d, ctx, gex_max=1.0, skip_fomc=False, skip_pre_open_event=False, 
     if skip_pre_open_event:
         off |= ctx["event_pre_open"]
     return np.where(off, 0.0, x)
+
+
+def gated(x, ctx, gex_max=1.0, gex_min=0.0, vix_ts_min=0.0, vix_ts_max=9.0):
+    """Keep a daily series only on Sessions in the given prior-day regime (unknown regime = off when gated)."""
+    g, ts = ctx["gex_rank"], ctx["vix_ts"]
+    on = np.ones(len(x), bool)
+    if gex_max < 1.0 or gex_min > 0.0:
+        on &= np.isfinite(g) & (g <= gex_max) & (g >= gex_min)
+    if vix_ts_min > 0.0 or vix_ts_max < 9.0:
+        on &= np.isfinite(ts) & (ts >= vix_ts_min) & (ts <= vix_ts_max)
+    return np.where(on, x, 0.0)
+
+
+def vwap_fade(d, start=60, end=270, dev=0.4, stop_x=0.15, target="vwap", exit_bar=360, cost=1.0):
+    """Midday fade: first time price closes >= dev*ATR away from session VWAP between bars start..end,
+    enter against it at the next open; stop stop_x*ATR; target VWAP-at-entry (or 1R); time exit."""
+    D, B = d.o.shape
+    rows = np.arange(D)
+    idx = np.arange(B)[None, :]
+    ctx = context(d)
+    vw = ctx["vwap"]
+    atr = d.atr14[:, None]
+    far = (d.c - vw) / atr
+    win = (idx >= start) & (idx <= np.minimum(end, d.last[:, None] - 2))
+    trig = win & (np.abs(far) >= dev)
+    j = trig.argmax(1)
+    has = trig.any(1) & np.isfinite(d.atr14)
+    e = np.minimum(j + 1, B - 1)
+    direction = -np.sign(far[rows, j])
+    entry = d.o[rows, e]
+    stp = entry - direction * stop_x * d.atr14
+    risk = stop_x * d.atr14
+    tgt = vw[rows, j] if target == "vwap" else entry + direction * risk
+    ok = has & ((tgt - entry) * direction > 0)
+    xe = np.minimum(exit_bar, d.last)
+    live = (idx >= e[:, None]) & (idx <= xe[:, None])
+    dc = direction[:, None]
+
+    def first(m):
+        i = m.argmax(1)
+        i[~m.any(1)] = 10**6
+        return i
+    js = first(live & np.where(dc > 0, d.l <= stp[:, None], d.h >= stp[:, None]))
+    jt = first(live & (idx > e[:, None]) & np.where(dc > 0, d.h >= tgt[:, None], d.l <= tgt[:, None]))
+    f = np.minimum(np.minimum(js, jt), xe)
+    fc = np.minimum(f, B - 1)
+    o_at = d.o[rows, fc]
+    out = np.where(f == js, np.where(dc[:, 0] > 0, np.minimum(stp, o_at), np.maximum(stp, o_at)),
+                   np.where(f == jt, tgt, d.c[rows, fc]))
+    r = (direction * (out - entry) - cost) / risk
+    return np.where(ok, np.nan_to_num(r), 0.0)
+
+
+def fomc_reversal(d, ctx, ref="open", start=240, min_move=0.0, stop_x=0.0, cost=1.0):
+    """On FOMC-afternoon days, fade the move from `ref` (open | prev_close) to 13:59 at bar `start` (240=13:30 ... 270=14:00).
+    Exit 15:59. Returns ATR-normalised P&L."""
+    rows = np.arange(len(d.dates))
+    fomc = ctx["event_afternoon"] & ctx["event_fed"]
+    t0 = np.minimum(start - 1, d.last - 1)
+    px = d.c[rows, t0]
+    base = d.o[:, 0] if ref == "open" else d.prev_close
+    move = (px - base) / d.atr14
+    direction = -np.sign(move)
+    ok = fomc & np.isfinite(move) & (np.abs(move) >= min_move)
+    out = d.c[rows, d.last]
+    if stop_x:
+        B = d.o.shape[1]
+        idx = np.arange(B)[None, :]
+        stp = px - direction * stop_x * d.atr14
+        live = (idx >= start) & (idx <= d.last[:, None])
+        hit = live & np.where(direction[:, None] > 0, d.l <= stp[:, None], d.h >= stp[:, None])
+        out = np.where(hit.any(1), stp, out)
+    pnl = (direction * (out - px) - cost) / d.atr14
+    return np.where(ok, np.nan_to_num(pnl), 0.0)

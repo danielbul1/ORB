@@ -34,3 +34,12 @@ ORB v1 on ES loses: 2016–24 Sharpe −0.46, and 7 of 11 years are negative. It
 - **Economic calendar 2007–2026** (Forex Factory history, UTC → ET). Jev labelled all 170 USD event types with a category and a market-impact Score. CPI, FOMC, NFP and Powell rank as Major (≥ 2.5); vehicle sales and DST shifts as negligible. 18.6% of Sessions have a major event.
 - **SqueezeMetrics GEX/DIX** (2011–), **CBOE VIX / VIX9D / VVIX**. Every value is taken from the prior day only.
 - **LSE:** NQ ticks exist only from 2025-09 and carry no aggressor side, so order flow is deprioritised. NAS100, SOX and NVDA 1m go back to 2003.
+
+## Round 2: research-led candidates (see [[Intraday Edges Research]])
+| Rule Set | WF Score/yr | Sharpe | Trades | Verdict |
+|---|---|---|---|---|
+| Late-day momentum, only when dealer gamma is low (GEX rank ≤ 0.2–0.5) | −$38 | −0.07 | 134 | ❌ Baltussen's effect doesn't hold year to year on NQ 2019–24 |
+| High-gamma midday VWAP fade | −$58 | −0.16 | 166 | ❌ loses in both high- and low-gamma regimes |
+| FOMC reversal (fade the move into 14:00) | +$369 | 0.23 | 52 | ⚠️ 5 of 6 years positive but tiny and too few trades; watch only |
+
+**Lesson:** each candidate had tuned-period Scores of $500–$6,600, then failed on the next unseen year. That is the overfitting trap the Walk-Forward is built to catch. So far ORB v1 is the only Rule Set that survives.
