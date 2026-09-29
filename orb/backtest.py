@@ -26,6 +26,7 @@ DEFAULTS = dict(
     max_or_atr=9.0,     # skip if OR width / ATR14 above
     rvol_min=0.0,       # skip if OR volume / mean OR volume of prior 14 days below
     gap_dir=None,       # with | against: only trade breakouts in / against the gap direction
+    gap_min=0.0,        # skip if |09:30 open - prior close| / ATR14 is below this
     dows=None,          # iterable of weekdays allowed (0=Mon)
     be_r=None,          # move stop to entry after price reaches be_r R
     body_min=0.0,       # candle entry: skip if |OR close - open| / ATR14 below
@@ -189,6 +190,8 @@ def run(d, **p):
     if p["gap_dir"]:
         gap = np.sign(d.o[:, 0] - d.prev_close)
         ok &= (direction == gap) if p["gap_dir"] == "with" else (direction == -gap)
+    if p["gap_min"] > 0:
+        ok &= np.abs(d.o[:, 0] - d.prev_close) / atr >= p["gap_min"]
     if p["dows"] is not None:
         ok &= np.isin(d.dow, list(p["dows"]))
 

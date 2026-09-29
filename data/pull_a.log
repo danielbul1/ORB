@@ -1,0 +1,33 @@
+  retry 1 NAS100/USD 2003-04-01: [429] too many concurrent requests for this key; retry shortly
+  retry 1 NAS100/USD 2003-12-03: [429] rate limit exceeded; slow down to your plan's calls per minute
+  retry 2 NAS100/USD 2003-12-03: [429] rate limit exceeded; slow down to your plan's calls per minute
+  retry 3 NAS100/USD 2003-12-03: [429] rate limit exceeded; slow down to your plan's calls per minute
+  NAS100/USD 2004...
+  NAS100/USD 2005...
+  retry 1 NAS100/USD 2005-01-17: [429] too many concurrent requests for this key; retry shortly
+  retry 2 NAS100/USD 2005-01-17: [429] rate limit exceeded; slow down to your plan's calls per minute
+  retry 3 NAS100/USD 2005-01-17: [429] rate limit exceeded; slow down to your plan's calls per minute
+  retry 1 NAS100/USD 2005-05-26: [429] too many concurrent requests for this key; retry shortly
+  retry 1 NAS100/USD 2005-06-10: [429] rate limit exceeded; slow down to your plan's calls per minute
+  retry 2 NAS100/USD 2005-06-10: [429] rate limit exceeded; slow down to your plan's calls per minute
+  NAS100/USD 2006...
+  retry 1 NAS100/USD 2006-01-06: [429] rate limit exceeded; slow down to your plan's calls per minute
+  retry 2 NAS100/USD 2006-01-06: [429] rate limit exceeded; slow down to your plan's calls per minute
+  retry 1 NAS100/USD 2006-05-12: [500] Internal Server Error
+  retry 1 NAS100/USD 2006-07-14: [429] rate limit exceeded; slow down to your plan's calls per minute
+  retry 2 NAS100/USD 2006-07-14: [429] rate limit exceeded; slow down to your plan's calls per minute
+  NAS100/USD 2007...
+  retry 1 NAS100/USD 2007-02-03: [429] rate limit exceeded; slow down to your plan's calls per minute
+  retry 2 NAS100/USD 2007-02-03: [429] rate limit exceeded; slow down to your plan's calls per minute
+  retry 3 NAS100/USD 2007-02-03: [429] rate limit exceeded; slow down to your plan's calls per minute
+Traceback (most recent call last):
+  File "C:\Users\user\ORB\tools\pull_lse.py", line 18, in <module>
+    download(LSE(), symbol, "1m", start, end, dataset=dataset, out=out)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\user\Model\engine\data_lse.py", line 61, in download
+    print(f"wrote {out.relative_to(ROOT)}: {len(allb)} bars, {t.min()} -> {t.max()}", flush=True)
+                   ~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\user\AppData\Local\Programs\Python\Python313\Lib\pathlib\_local.py", line 385, in relative_to
+    raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+ValueError: 'C:\\Users\\user\\ORB\\data\\nas100_a_1m_lse.csv' is not in the subpath of 'C:\\Users\\user\\Model'
+exit 1

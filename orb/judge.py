@@ -68,3 +68,18 @@ def report(name, d, oos, picks, s):
           f"Sharpe {s['sharpe']} | trades {s['trades']} | win {s.get('win')} | worst losing streak {s['streak']}")
     for y, p, tv, te in picks:
         print(f"  {y}: tuned {tv:>8} -> test Score {te:>8}  {p}")
+
+
+def deflated_sharpe(daily, n_trials, trial_sharpes_annual):
+    """Bailey & Lopez de Prado (2014): probability that the true Sharpe > 0 after selecting the best of
+    `n_trials` variants whose annualised Sharpes spread like `trial_sharpes_annual`."""
+    from scipy.stats import kurtosis, norm, skew
+    x = np.asarray(daily, float)
+    T = len(x)
+    sr = x.mean() / x.std()                       # per-Session Sharpe
+    v = np.var(np.asarray(trial_sharpes_annual) / np.sqrt(252))
+    g = 0.5772156649
+    sr0 = np.sqrt(v) * ((1 - g) * norm.ppf(1 - 1 / n_trials) + g * norm.ppf(1 - 1 / (n_trials * np.e)))
+    denom = np.sqrt(1 - skew(x) * sr + (kurtosis(x, fisher=False) - 1) / 4 * sr**2)
+    return dict(sharpe_annual=round(sr * np.sqrt(252), 2), sr0_annual=round(sr0 * np.sqrt(252), 2),
+                dsr=round(float(norm.cdf((sr - sr0) * np.sqrt(T - 1) / denom)), 4))
