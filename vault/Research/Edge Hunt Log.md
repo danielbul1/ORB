@@ -119,3 +119,14 @@ Every candidate had to improve **both** eras on the 23-year base (Sharpe A 2003�
 ### Random-direction control (ORB v1, same days and exits, 2016–24)
 - Real signal Sharpe **1.39**. Coin-flip direction: mean **0.57** (95th percentile 0.93, best of 300 trials 1.28), so p < 1/300. Opposite direction: **−0.50**.
 - **Meaning:** the direction signal is real, and about a third of the Edge comes from *which days* we trade (a gap plus a decisive opening) and the tight-stop / far-target bracket. That bracket works like a cheap option on a trend day, and it is exactly what the community's 1–2R targets throw away.
+
+## ES test of the final rule sets (2026-09-29): not tradable ❌
+ES is back-adjusted, with a 0.5 pt (2-tick) round trip, over 2016–2026:
+| Rule Set | ES Sharpe 16–24 | ES Sharpe 25–26 | ES years + | NQ Sharpe 16–24 | NQ years + |
+|---|---|---|---|---|---|
+| ORB v1 | 0.10 | 0.18 | 5/11 | 1.39 | 11/11 |
+| Ensemble v1 | 0.23 | −0.13 | 6/11 | 1.44 | 10/11 |
+| Ensemble v2 | 0.23 | 0.04 | 5/11 | 1.59 | 11/11 |
+- Ensemble v2 yearly Sharpe on ES ranges from −2.1 to +2.6: unstable. Its daily correlation with NQ is 0.52, so ES adds no diversification.
+- At a 1 pt cost, v2 shows a *higher* ES Sharpe (0.41), because the stop-size floor then skips ES's small-stop days, and those were the losing days in quiet years.
+- **Conclusion:** the Edge is Nasdaq-specific, which is consistent with the tech-momentum and leveraged-ETF mechanism (ORB-5 Sharpe vs leveraged-ETF share: +0.6). Trade NQ/MNQ only; ES stays a control, not a market.
