@@ -1,0 +1,4 @@
+# Obsidian per-machine state
+vault/.obsidian/workspace*.json
+vault/.obsidian/cache
+vault/.trash/
