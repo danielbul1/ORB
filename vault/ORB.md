@@ -8,3 +8,4 @@ Opening Range Breakout strategy notes.
 - [[Research/Community ORB Scripts]] · [[Research/QuantFlowLabs ORB]]
 - [[Research/Edge Hunt Log]]
 - [[Research/Intraday Edges Research]] (non-ORB intraday edges, ranked test list)
+- [[Research/TradingView ORB Strategies Backtested]]

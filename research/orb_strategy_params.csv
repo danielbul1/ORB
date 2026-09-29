@@ -1,0 +1,26 @@
+id,name,likes,entry,stop,target,or_length,f_vwap,f_ma_trend,f_volume,or_minutes,or_minutes_conf,target_r,target_r_conf,target_range_mult,target_range_mult_conf,target_points,target_points_conf,stop_atr_mult,stop_atr_mult_conf,stop_points,stop_points_conf,entry_cutoff,entry_cutoff_conf,session_end,session_end_conf
+PUB;3c73f7c980e34ac687cd419346e058c3,ORB Heikin Ashi SPY 5min Correlation Strategy,2357,close,none,session_end,30m,0.02,0.02,0.96,"""0930-1000""",0.46,,1.0,,0.92,,1.0,,0.99,,1.0,"""1000-1200""",0.63,"""1550-1555""",0.99
+PUB;3f92e83858d3400287a9c7eda40d7e37,ORB Strategy [LuciTech],1251,close,atr,r_multiple,15m,0.02,0.03,0.24,,0.99,,0.94,,0.97,,0.99,,0.78,,0.77,,0.96,,0.96
+PUB;04da620e890c46e5a5d976b8886c596e,Long-Only Opening Range Breakout (ORB) with Pivot Points,700,touch,fixed,trailing,15m,0.02,0.02,0.05,"""0930-0945",1.0,,1.0,,1.0,,1.0,,1.0,,1.0,"timestamp(""30 Sep 2099 19:30 +0000",0.41,"timestamp(""30 Sep 2099 19:30 +0000",0.33
+PUB;72921292b022422398871ebd448dca21,ORB Pro | Session Breakout Scalper,526,close,opposite_side,r_multiple,15m,0.86,0.03,0.85,15,1.0,1.5,1.0,1.5,0.76,,0.9,1.0,1.0,,0.96,16,0.85,16,0.7
+PUB;32d3f7c084634182b102099d13d4fe82,Drop's Opening Range Breakout (ORB),441,close,midpoint,r_multiple,15m,0.02,0.11,0.32,"""0930-0945""",1.0,1.0,1.0,1.0,0.83,,0.51,,0.63,,0.91,"""1130""",0.94,"""1130""",1.0
+PUB;3ce770bcbe3e490592831985d84284fc,Script_Algo - ORB Strategy with Filters,412,close,opposite_side,r_multiple,other,0.02,0.84,0.63,5,0.49,3.0,1.0,3.0,0.44,,0.85,2.0,0.98,,0.94,30,0.49,,0.45
+PUB;cd6cc5d6013e4a9e8f34f7e5dba15cbe,ORB + Key Session Levels Strategy +SL,381,close,midpoint,r_multiple,15m,0.02,0.02,0.04,"""15 Min""",0.99,1.0,0.97,1.0,0.86,,0.95,,0.97,20.0,0.95,"""0945""",0.94,"""1600""",0.62
+PUB;7224bdd1b161487ba8ae4937f08a7d51,Big Daddy Max ORB Strategy,273,close,midpoint,r_multiple,15m,0.02,0.02,0.03,"""0930-0945""",1.0,1.0,1.0,1.0,0.97,,0.7,,0.99,,0.98,"""0945-1600""",0.94,"""0945-1600""",0.64
+PUB;45ecc06877614453864de404010b8cc4,ORB Breakout Strategy,215,close,candle_or_swing,r_multiple,15m,0.02,0.02,0.03,"""0930-0945""",1.0,2.0,1.0,2.0,0.65,,0.66,,0.99,,0.95,"""0930-1200""",1.0,"""1550-1600""",1.0
+PUB;edb2f8a7b738444f8fedf4163a00e185,NY15m ORB with a fixed SL & TP (Nasdaq),195,close,atr,r_multiple,15m,0.02,0.02,0.04,"""15 Minutes""",1.0,2.0,0.99,,0.51,,0.66,2.0,0.74,,0.72,,0.48,,0.99
+PUB;e36c6ad741f24e668183adbd6daffc5c,Session Opening Range Breakout (ORBO),176,close,none,none,other,0.02,0.02,0.03,"""0930-0950""",1.0,,1.0,,1.0,,1.0,,1.0,,1.0,"""0930-0950""",0.92,,0.98
+PUB;7a878699b18b4d1ba25f95a72bc1e1cd,NY Opening Range Breakout - MA Stop,156,close,opposite_side,r_multiple,15m,0.05,0.81,0.04,,0.94,2.5,1.0,2.5,0.72,,0.82,,1.0,,0.99,12,0.86,,0.85
+PUB;33c4a58580d949658188646d1f79e8df,15-Min ORB Strategy for NQ ,129,close,opposite_side,r_multiple,15m,0.02,0.02,0.03,,1.0,1.0,0.86,1.0,0.69,33,0.81,,0.99,0.0,0.9,,1.0,,1.0
+PUB;d6ca20660580486f975a03d735d68493,ORB Breakout Strategy with VWAP and Volume Filters,123,touch,candle_or_swing,r_multiple,other,0.87,0.04,0.7,"""0930-1730""",0.59,1.0,0.98,,0.86,20.0,1.0,,1.0,10.0,1.0,"""0930-1730""",1.0,"""0930-1730""",0.84
+PUB;6fe345e1e64e48049c95914cb53e9b9a,ORB + Key Session Levels Strategy,94,close,midpoint,r_multiple,15m,0.03,0.03,0.04,"""15 Min""",0.99,1.0,0.95,1.0,0.78,,0.96,,0.97,20.0,0.96,"""0945""",0.89,"""1600""",0.42
+PUB;9d4046b43b95402b82afc34dc462b561,Initial Balance Breakout Strategy,47,retest,fixed,range_multiple,60m,0.02,0.02,0.03,,0.37,,0.73,0.50,1.0,0.50,0.72,,0.97,60.0,1.0,13,0.72,15,0.98
+PUB;448759d4093b4b71934c4147626fd58d,ORB MEEEEEKS,46,retest,atr,atr_or_fixed,15m,0.71,0.03,0.08,"""0930-0945""",0.99,1.0,0.89,1.0,0.92,"""Points""",0.52,1.0,1.0,,0.43,"""0930-1600""",0.4,false,0.57
+PUB;33511f6bb2d44d9490724efd37ce647d,ORB AVWAP Retest Strategy,43,retest,opposite_side,r_multiple,15m,0.74,0.02,0.05,,0.5,1.0,1.0,1.0,0.92,,0.7,1.0,1.0,,0.95,16,0.56,16,0.63
+PUB;ac82f4a03ef74fc09d72a95a3e16b1ea,ORB + Key Session Levels Strategy W/SL,43,close,midpoint,r_multiple,15m,0.02,0.02,0.04,"""15 Min""",0.99,1.0,0.96,1.0,0.82,,0.94,,0.97,20.0,0.96,"""0945""",0.89,"""1600""",0.54
+PUB;99bba70d9a7d479bacbdc3abe2ea092e,Initial Balance Breakout [samjNQ] v3,42,close,opposite_side,range_multiple,60m,0.92,0.04,0.03,"""0930-1030""",1.0,1.0,0.57,1.0,0.85,,0.91,,0.99,,0.93,"""1030-1430""",0.99,"""1030-1430""",0.95
+PUB;0ca97d19e91042a18bf1897225de83c5,US30 ORB 5m / 1m Strategy,34,close,opposite_side,atr_or_fixed,5m,0.02,0.02,0.03,"""0930-0935""",1.0,,0.93,,0.94,10,1.0,,0.98,0,0.99,"""0930-0935""",1.0,,0.83
+PUB;4b11372f3e9e4ff2a47c353d7054c53b,NASDAQ ORB Strategy - Strict Exec (RRR 2.0) Fixed,30,close,midpoint,r_multiple,15m,0.02,0.04,0.96,,1.0,2.0,1.0,2.0,0.64,,0.91,,0.95,,0.99,,1.0,,1.0
+PUB;8fec8926dfe84bf180068ae0d479e157,MNQ 15m NY Open ORB Strategy,30,close,fixed,atr_or_fixed,15m,0.02,0.02,0.03,"""0930-0945""",1.0,,0.8,,0.94,200.0,1.0,,0.99,200.0,1.0,"""0930-0945""",0.89,"""0945-1600""",0.72
+PUB;763d941693444257a2ef20045f82fb7b,VWAP ORB Pullback Strategy,27,pullback_other,atr,r_multiple,15m,0.72,0.68,0.04,15,1.0,1.5,1.0,1.5,0.63,,0.91,,0.97,,0.99,,0.64,,0.99
+PUB;7f0d148da56d44db97c682ed14eb907a,MNQ ORB Strategy - VWAP + Bias,25,touch,fixed,atr_or_fixed,other,0.8,0.04,0.03,10,1.0,,0.93,,0.99,120,1.0,,0.94,60,1.0,11,1.0,,0.55

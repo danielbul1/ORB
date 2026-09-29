@@ -99,3 +99,23 @@ The top 25 are all **opening-candle direction + with the gap + ATR stop on a 30�
 - **Parity with Python on 2026-09-21 … 09-28:** all 14 TradingView trades match the engine's members, with entries within a tick and exits within about 1 point. One Python trade (09-28, 30m) was skipped in TradingView because price was only 1.2 pt on the VWAP side; TradingView's VWAP comes from MNQ 5m bars, the engine's from NQ 1m. Expect rare borderline differences like this.
 - **Bug fixed in both scripts:** the stop and target were placed only after TradingView saw the fill, so the fill bar itself was unprotected (on 09-25 E30 lost 96 pt instead of about 39). Now the bracket goes in with the entry order and is refined from the real fill afterwards.
 - `tools/push_pine.mjs` now refuses unless the open script's strategy title equals the file's, so one ORB script can never be pushed over another.
+
+## Lessons from the community applied → Ensemble v2 (2026-09-29)
+Every candidate had to improve **both** eras on the 23-year base (Sharpe A 2003–15 / B 2016–24 / 2025–26 spent):
+| Change | ORB v1 | Ensemble |
+|---|---|---|
+| Base | −0.06 / 1.47 / 1.21 | 0.89 / 1.50 / 0.41 |
+| No target, hold to the close | −0.09 / 1.40 / 0.55 | 0.89 / 1.34 / 0.01 |
+| 10R target + trail 0.3 ATR once 2R up | 0.16 / 1.66 / 1.50 | 0.72 / 1.59 / 0.50 |
+| EMA200 (1m) trend side | 0.12 / 1.44 / 1.10 | 0.98 / 1.55 / 0.40 |
+| 20-day trend side | 0.17 / 1.28 / 0.88 | 0.51 / 1.11 / 0.68 |
+| Skip if stop < 4× cost | −0.01 / 1.47 / 1.21 | 0.98 / 1.50 / 0.41 |
+| Stress: cost +1 pt | −1.01 / 1.34 / 1.21 | −0.50 / 1.26 / 0.41 |
+| **EMA200 + stop floor + trail** | 0.34 / 1.64 / 1.40 (Score $4,038 vs $4,573: drawdown ↑) | **0.92 / 1.64 / 0.49**, Score $2,803 vs $1,998, drawdown 20R vs 30R ✅ |
+
+- **Adopted: Ensemble v2** (`orb.families.ENSEMBLE_V2`). It improves every era, the Score, the drawdown and the losing streak. It is in the Forward Test and in TradingView ("ORB Ensemble", with parity including trailing exits).
+- **ORB v1 kept frozen.** Its variant has a better Sharpe but a worse Score because of a larger drawdown.
+
+### Random-direction control (ORB v1, same days and exits, 2016–24)
+- Real signal Sharpe **1.39**. Coin-flip direction: mean **0.57** (95th percentile 0.93, best of 300 trials 1.28), so p < 1/300. Opposite direction: **−0.50**.
+- **Meaning:** the direction signal is real, and about a third of the Edge comes from *which days* we trade (a gap plus a decisive opening) and the tight-stop / far-target bracket. That bracket works like a cheap option on a trend day, and it is exactly what the community's 1–2R targets throw away.

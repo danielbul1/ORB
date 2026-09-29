@@ -1,0 +1,21 @@
+strategy,trades/yr,win%,avgR,Sharpe 16-24,Score 16-24,Sharpe 25-26,Sharpe 03-15,worst streak
+"OURS: ORB v1 (5m, gap, VWAP, 0.1 ATR, 10R)",78,22,0.541,1.39,4573.0,1.3,-0.06,16
+NY ORB - MA Stop (156),185,42,0.051,0.55,571.0,0.48,-0.61,10
+"Initial Balance Breakout (Bnf6082, 47)",199,49,0.038,0.48,440.0,-0.09,-0.67,10
+Script_Algo ORB with Filters (412),78,36,0.073,0.41,421.0,0.51,-0.36,10
+ORB + VWAP and Volume Filters (123),122,53,0.027,0.3,252.0,-0.28,-1.04,9
+Initial Balance Breakout [samjNQ] v3 (42),233,53,0.012,0.25,201.0,0.13,-0.54,8
+NASDAQ ORB Strict Exec RRR 2.0 (30),121,36,0.01,0.08,50.0,-0.92,-0.59,14
+ORB Pro | Session Breakout Scalper (526),124,44,0.003,0.03,19.0,0.88,-0.46,10
+MNQ ORB - VWAP + Bias (25),248,38,-0.009,-0.11,-38.0,0.64,-0.52,16
+"ORB Breakout Strategy (chartsquare, 215)",252,36,-0.014,-0.16,-90.0,0.2,-1.14,13
+"ORB Heikin Ashi SPY 5min Correlation (exlux, 2357 likes)",116,48,-0.009,-0.18,-71.0,0.47,-0.88,9
+15-Min ORB for NQ (129),250,50,-0.016,-0.27,-90.0,0.93,-1.41,8
+NY15m ORB fixed SL&TP Nasdaq (195),250,35,-0.028,-0.32,-146.0,-0.01,-0.81,15
+ORB Strategy [LuciTech] (1251),250,35,-0.028,-0.32,-146.0,-0.01,-0.81,15
+ORB AVWAP Retest (43),233,50,-0.021,-0.33,-120.0,0.36,-1.4,7
+MNQ 15m NY Open ORB (30),250,50,-0.029,-0.47,-185.0,-0.2,-2.08,10
+Drop's ORB (441),250,48,-0.067,-1.09,-216.0,-0.51,-1.92,10
+ORB + Key Session Levels +SL (381),250,49,-0.07,-1.1,-214.0,-0.33,-1.77,10
+Big Daddy Max ORB (273),254,48,-0.071,-1.13,-214.0,-0.39,-1.71,10
+ORB MEEEEEKS (46),233,51,-0.081,-1.22,-211.0,-0.98,-3.09,10

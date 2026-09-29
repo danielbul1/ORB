@@ -198,3 +198,14 @@ def fomc_reversal(d, ctx, ref="open", start=240, min_move=0.0, stop_x=0.0, cost=
         out = np.where(hit.any(1), stp, out)
     pnl = (direction * (out - px) - cost) / d.atr14
     return np.where(ok, np.nan_to_num(pnl), 0.0)
+
+
+# Ensemble v2 (2026-09-29): ORB v1 rules on 5/15/30/60-min ranges, 1/4 risk each, plus the lessons that improved
+# both eras: EMA200 (1m) side, skip if stop < 4x round-trip cost, trail 0.3 ATR once 2R in profit.
+ENSEMBLE_MEMBERS = (5, 15, 30, 60)
+ENSEMBLE_V2 = dict(ORB_V1, ema_n=200, min_risk_cost=4, trail_x=0.3, trail_start=2)
+
+
+def ensemble_v2(d, **p):
+    xs = [np.where((r := run(d, **{**ENSEMBLE_V2, "or_min": om, **p}))["ok"], r["r"], 0.0) for om in ENSEMBLE_MEMBERS]
+    return sum(xs) / len(xs)

@@ -36,6 +36,11 @@ DEFAULTS = dict(
     stretch_m=1.0,      # stretch entry: levels at open +- m * stretch
     # --- ideas harvested from the community scripts (research/orb_script_profiles.csv) ---
     target_or=None,     # target at entry +- k * OR width (range extensions) instead of R
+    target_pct=None,    # target at entry +- this fraction of price (fixed-point targets scaled to price)
+    trail_x=0.0,        # trailing stop distance in ATR14 (0 = off)
+    trail_start=2.0,    # trailing stop arms once the trade has been this many R in profit
+    min_risk_cost=0.0,  # skip if the stop distance is below this multiple of the round-trip cost
+    dir_override=None,  # research control only: per-Session direction array replacing the signal (after filters)
     vwap_side=False,    # entry bar's prior close must be on the trade side of session VWAP
     ema_n=0,            # prior close must be on the trade side of EMA(n) of 1m closes
     htf_side=False,     # prior day close on the trade side of its 20-day SMA
@@ -196,6 +201,9 @@ def run(d, **p):
     if p["dows"] is not None:
         ok &= np.isin(d.dow, list(p["dows"]))
 
+    if p["dir_override"] is not None:
+        direction = np.where(ok, np.asarray(p["dir_override"]), direction)
+
     # --- stop / target -------------------------------------------------------
     if p["stop"] == "or":
         stop = np.where(direction > 0, orl - TICK, orh + TICK)
@@ -203,13 +211,20 @@ def run(d, **p):
         stop = np.where(direction > 0, (orh + orl) / 2 - TICK, (orh + orl) / 2 + TICK)
     elif p["stop"] == "atr":
         stop = entry - direction * p["stop_x"] * atr
+    elif p["stop"] == "pct":  # fixed-point stops, expressed as a fraction of price
+        stop = entry - direction * p["stop_x"] * entry
     else:
         raise ValueError(p["stop"])
     risk = (entry - stop) * direction
     ok &= risk > 0
+    if p["min_risk_cost"]:
+        rt = p["cost"] if p["cost_bp"] is None else np.maximum(p["cost_bp"] * 1e-4 * entry, p["cost_floor"])
+        ok &= risk >= p["min_risk_cost"] * rt
     tgt = entry + direction * p["target_r"] * risk if p["target_r"] else None
     if p["target_or"]:
         tgt = entry + direction * p["target_or"] * width
+    if p["target_pct"]:
+        tgt = entry + direction * p["target_pct"] * entry
 
     ec = np.where(ok, e, 0)[:, None]
     after = idx >= ec
@@ -230,6 +245,22 @@ def run(d, **p):
     else:
         js_ = _first(hit_stop)
         stop_px = stop
+
+    if p["trail_x"]:
+        # Trailing stop: once the best price since entry is >= trail_start R in profit, the stop follows it at
+        # trail_x * ATR14. The level used in bar j comes only from bars before j (no look-ahead).
+        fav = np.where(live, np.where(dcol > 0, d.h, -d.l), -np.inf)
+        best = np.maximum.accumulate(fav, axis=1)
+        prev_best = np.concatenate([np.full((D, 1), -np.inf), best[:, :-1]], axis=1)  # signed: long high / -short low
+        lvl = prev_best - p["trail_x"] * atr[:, None]            # signed level
+        armed = prev_best >= (direction * entry + p["trail_start"] * risk)[:, None]
+        signed_low = np.where(dcol > 0, d.l, -d.h)
+        hit_tr = live & (idx > ec) & armed & (signed_low <= lvl)
+        jtr = _first(hit_tr)
+        tr_px = direction * lvl[rows, np.minimum(jtr, B - 1)]
+        use_tr = jtr < js_
+        js_ = np.where(use_tr, jtr, js_)
+        stop_px = np.where(use_tr, tr_px, stop_px)
 
     if tgt is not None:
         hit_t = live & (idx > ec) & np.where(dcol > 0, d.h >= tgt[:, None], d.l <= tgt[:, None])
