@@ -8,3 +8,7 @@ vault/.trash/
 __pycache__/
 data/*.csv
 data/*.npz
+
+.env
+research/community/*.pine
+jev_cache/

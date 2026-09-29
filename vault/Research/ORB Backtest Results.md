@@ -15,7 +15,10 @@ Back to [[ORB]] · Sources: [[ORB Literature Review]]
 - **Score:** Sharpe of daily R (fixed-fractional risk per trade), plus average R per trade and max drawdown in R.
 - **Parity:** the `ORB v0` Pine strategy on TradingView (NQ1! 5m) took the **same trades** as the Python engine on all 7 overlapping days. Prices were within 1 tick.
 
-## 🏆 Winner: ORB-5 Candle + Body + Gap
+## 🏆 ORB v1 = winner + VWAP side (2026-09-29)
+Adding **price on the trade side of the RTH VWAP at 09:34** (an idea from [[Community ORB Scripts]] / [[QuantFlowLabs ORB]]) improved every split: Sharpe train 1.33, val 1.51, **holdout 1.25**, and drawdown fell to 14.8R. It is the default in the Pine strategy.
+
+## Winner v0: ORB-5 Candle + Body + Gap
 
 | Rule | Value |
 |---|---|

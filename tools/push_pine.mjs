@@ -17,8 +17,13 @@ if (!(await hasEditor())) {
 }
 
 const source = readFileSync(process.argv[2], 'utf8').replace(/\r\n/g, '\n');
-const current = await pine.getSource();
-const text = current.source ?? current.code ?? JSON.stringify(current);
+// The editor can report an empty source for a moment after opening; wait for the real text.
+let text = '';
+for (let i = 0; i < 20 && !text.trim(); i++) {
+  const current = await pine.getSource();
+  text = current.source ?? current.code ?? '';
+  if (!text.trim()) await new Promise((r) => setTimeout(r, 250));
+}
 if (!/ORB/.test(text.slice(0, 2000))) {
   console.error('ABORT: the open editor script is not a ORB script.');
   process.exit(1);

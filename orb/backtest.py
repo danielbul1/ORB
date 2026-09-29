@@ -7,6 +7,7 @@ Fill rules are deliberately pessimistic:
   * every trade pays `cost` points round trip (slippage + commission).
 """
 import numpy as np
+import pandas as pd
 
 TICK = 0.25
 POINT_USD = 20.0  # NQ; MNQ is 2.0
@@ -32,6 +33,13 @@ DEFAULTS = dict(
     nr=None,            # 4 | 7: only trade after an NR4 / NR7 day
     stretch_n=10,       # stretch entry: lookback of mean min(H-O, O-L)
     stretch_m=1.0,      # stretch entry: levels at open +- m * stretch
+    # --- ideas harvested from the community scripts (research/orb_script_profiles.csv) ---
+    target_or=None,     # target at entry +- k * OR width (range extensions) instead of R
+    vwap_side=False,    # entry bar's prior close must be on the trade side of session VWAP
+    ema_n=0,            # prior close must be on the trade side of EMA(n) of 1m closes
+    htf_side=False,     # prior day close on the trade side of its 20-day SMA
+    rsi_block=0,        # skip longs if RSI(70 x 1m ~ 14 x 5m) > rsi_block, shorts if < 100 - rsi_block
+    pdhl_block=0.0,     # skip if prior day high (longs) / low (shorts) lies within x ATR ahead of entry
     cost=1.0,           # points round trip
 )
 
@@ -61,7 +69,19 @@ def daily(d):
                 out[i] = rng[i - 1] <= rng[i - n:i].min()
             return out
         stretch_src = np.minimum(dh - d.o[:, 0], d.o[:, 0] - dl)
+        flat_c = pd.Series(d.c.ravel())
+        ema = {n: flat_c.ewm(span=n, adjust=False).mean().values.reshape(d.c.shape) for n in (50, 100, 200)}
+        delta = flat_c.diff()
+        up = delta.clip(lower=0).ewm(alpha=1 / 70, adjust=False).mean()
+        dn = (-delta.clip(upper=0)).ewm(alpha=1 / 70, adjust=False).mean()
+        rsi = (100 - 100 / (1 + up / dn.replace(0, np.nan))).values.reshape(d.c.shape)
+        tp = (d.h + d.l + d.c) / 3
+        vwap = np.cumsum(tp * d.v, 1) / np.maximum(np.cumsum(d.v, 1), 1e-9)
+        sma20 = pd.Series(dc).rolling(20).mean().values
+        htf = np.sign(np.r_[np.nan, (dc - sma20)[:-1]])  # sign of yesterday's close vs its 20d SMA
         d._daily = dict(atr100=prior_mean(tr, 100), nr4=prior_nr(4), nr7=prior_nr(7),
+                        ema=ema, rsi=rsi, vwap=vwap, htf=htf,
+                        pdh=np.r_[np.nan, dh[:-1]], pdl=np.r_[np.nan, dl[:-1]],
                         stretch={n: prior_mean(stretch_src, n) for n in (5, 10, 20)})
     return d._daily
 
@@ -98,6 +118,17 @@ def run(d, **p):
         e = np.minimum(jl, js) + 1
         e = np.where(e <= cutoff[:, 0] + 1, e, BIG)
         entry = d.o[rows, np.minimum(e, B - 1)]
+    elif p["entry"] == "retest":
+        jl = _first(window & (d.c > orh[:, None]))
+        js = _first(window & (d.c < orl[:, None]))
+        direction = np.where(jl < js, 1, np.where(js < jl, -1, 0))
+        jb = np.minimum(jl, js)
+        edge = np.where(direction > 0, orh, orl)
+        back = window & (idx > jb[:, None]) & np.where(direction[:, None] > 0, d.l <= edge[:, None], d.h >= edge[:, None])
+        e = _first(back)
+        ec = np.minimum(e, B - 1)
+        o_e = d.o[rows, ec]
+        entry = np.where(direction > 0, np.minimum(edge, o_e), np.maximum(edge, o_e))  # limit order at the edge
     elif p["entry"] == "stretch":
         st = ctx["stretch"][p["stretch_n"]]
         up = np.round((d.o[:, 0] + p["stretch_m"] * st) / TICK) * TICK
@@ -132,6 +163,20 @@ def run(d, **p):
         ok &= atr / ctx["atr100"] >= p["vol_regime"]
     if p["nr"]:
         ok &= ctx[f"nr{p['nr']}"]
+    pe = np.clip(np.minimum(e, B) - 1, 0, B - 1)  # last bar closed before the entry fills
+    px_known = d.c[rows, pe]
+    if p["vwap_side"]:
+        ok &= direction * (px_known - ctx["vwap"][rows, pe]) > 0
+    if p["ema_n"]:
+        ok &= direction * (px_known - ctx["ema"][p["ema_n"]][rows, pe]) > 0
+    if p["htf_side"]:
+        ok &= direction == ctx["htf"]
+    if p["rsi_block"]:
+        rv = ctx["rsi"][rows, pe]
+        ok &= ~(((direction > 0) & (rv > p["rsi_block"])) | ((direction < 0) & (rv < 100 - p["rsi_block"])))
+    if p["pdhl_block"]:
+        room = np.where(direction > 0, ctx["pdh"] - entry, entry - ctx["pdl"])
+        ok &= ~((room > 0) & (room < p["pdhl_block"] * atr))
     ratio = width / atr
     ok &= (ratio >= p["min_or_atr"]) & (ratio <= p["max_or_atr"])
     if p["rvol_min"] > 0:
@@ -158,6 +203,8 @@ def run(d, **p):
     risk = (entry - stop) * direction
     ok &= risk > 0
     tgt = entry + direction * p["target_r"] * risk if p["target_r"] else None
+    if p["target_or"]:
+        tgt = entry + direction * p["target_or"] * width
 
     ec = np.where(ok, e, 0)[:, None]
     after = idx >= ec

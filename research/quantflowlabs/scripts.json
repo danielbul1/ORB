@@ -1,0 +1,58 @@
+[
+ {
+  "name": "QuantFlowLabs ORB Suite",
+  "type": "strategy",
+  "access": 3,
+  "sid": "PUB;9f30e7ee58e042bbbf8f20d8988f9141",
+  "url": "https://www.tradingview.com/script/DfVnIy2d-QuantFlowLabs-ORB-Suite/",
+  "symbol": "CME_MINI:MNQ1!",
+  "tf": "15",
+  "created": "2026-08-16T15:43:31+00:00",
+  "desc": "QuantFlowLabs ORB Suite is a Pine Script v6 intraday opening-range strategy designed for CME Micro E-mini Nasdaq-100 futures (MNQ) on standard 15-minute candles.\n\n## What the strategy does\n\nThe strategy records the opening range from 09:30 to 09:45 in the America/New_York timezone. After the range is complete, it evaluates confirmed candle closes outside the range. A qualifying breakout must satisfy the timing and market-condition rules of the selected profile before an order is generated.\n\nThe ",
+  "srcStatus": 401,
+  "srcMsg": "{\"code\":401,\"message\":\"User is not allowed to see source code of pine\"}",
+  "source": ""
+ },
+ {
+  "name": "ORB Ultimate Pro",
+  "type": "indicator",
+  "access": 3,
+  "sid": "PUB;e54dca66c49e4338b7763373fc02b76f",
+  "url": "https://www.tradingview.com/script/a6YXNSl8-ORB-Ultimate-Pro/",
+  "symbol": "CAPITALCOM:NAS100",
+  "tf": "5",
+  "created": "2026-05-05T21:38:31+00:00",
+  "desc": "This closed-source script provides a structured framework for identifying and filtering Opening Range Breakouts (ORB) across specific session windows. Rather than relying solely on price crossing a time-based threshold, this tool combines volatility, momentum, and trend-following metrics into a unified, non-repainting logic engine to evaluate the statistical probability of a breakout's continuation.\n\nCore Breakout Logic:\nThe script establishes an initial High and Low boundary based on user-defin",
+  "srcStatus": 401,
+  "srcMsg": "{\"code\":401,\"message\":\"User is not allowed to see source code of pine\"}",
+  "source": ""
+ },
+ {
+  "name": "SMC Sniper Pro",
+  "type": "indicator",
+  "access": 3,
+  "sid": "PUB;7f006b9fa1c844b3afdcc6d1ea35e151",
+  "url": "https://www.tradingview.com/script/JLUTwXGn-SMC-Sniper-Pro/",
+  "symbol": "CAPITALCOM:NAS100",
+  "tf": "1",
+  "created": "2026-05-05T20:50:35+00:00",
+  "desc": "SMC Sniper Pro is a closed-source discretionary market-structure framework designed to help traders analyze liquidity sweeps, market structure shifts, equilibrium retracements, imbalance delivery, and target areas across multiple timeframes.\n\nThe script is built around a full smart-money-style workflow rather than isolated buy/sell markers. Its purpose is to track where liquidity has been taken, whether price has displaced away from that liquidity, whether price has returned into a meaningful eq",
+  "srcStatus": 401,
+  "srcMsg": "{\"code\":401,\"message\":\"User is not allowed to see source code of pine\"}",
+  "source": ""
+ },
+ {
+  "name": "IFVG Elite Pro",
+  "type": "indicator",
+  "access": 3,
+  "sid": "PUB;7cf63f918b2543b4b72baacbcce0b581",
+  "url": "https://www.tradingview.com/script/1GvimFR9-IFVG-Elite-Pro/",
+  "symbol": "OANDA:XAUUSD",
+  "tf": "1",
+  "created": "2026-05-05T20:36:02+00:00",
+  "desc": "IFVG Elite Pro is a closed-source, invite-only execution framework built around a specific sequence: higher-timeframe Fair Value Gap interaction, time-normalized POI memory, lower-timeframe IFVG confirmation, liquidity context, and conflict filtering.\n\nThis script is not a collection of standalone indicators merged onto one chart. Its components are connected through a state-based execution model. A setup is only considered when the script can link a higher-timeframe imbalance tap to a later low",
+  "srcStatus": 401,
+  "srcMsg": "{\"code\":401,\"message\":\"User is not allowed to see source code of pine\"}",
+  "source": ""
+ }
+]
