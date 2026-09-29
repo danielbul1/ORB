@@ -37,6 +37,8 @@ with tempfile.TemporaryDirectory() as tmp:
     d = build(csv)
 
 res = run(d, **ORB_V1)
+# The OR-length ensemble (ORB v1 rules on 5/15/30/60-min ranges, 1/4 risk each) is forward-tested alongside.
+ens = {om: run(d, **{**ORB_V1, "or_min": om}) for om in (5, 15, 30, 60)}
 rows = []
 for i, day in enumerate(d.dates):
     if day < START or d.last[i] < 389 and day == np.datetime64(today.date()):
@@ -51,13 +53,14 @@ for i, day in enumerate(d.dates):
         reason=str(res["reason"][i]) if traded else "",
         r=round(float(res["r"][i]), 3) if traded else 0.0,
         risk_usd_1mnq=round(float(res["risk"][i]) * MNQ_USD, 2) if traded else None,
+        ensemble_r=round(float(sum(np.where(e["ok"][i], e["r"][i], 0.0) for e in ens.values()) / 4), 3),
     ))
 new = pd.DataFrame(rows, columns=["session", "traded", "direction", "entry", "stop", "exit", "reason", "r",
-                                   "risk_usd_1mnq"])
+                                   "risk_usd_1mnq", "ensemble_r"])
 old = pd.read_csv(LOG) if LOG.exists() else pd.DataFrame(columns=new.columns)
 log = pd.concat([old[~old.session.isin(new.session)], new]).sort_values("session")
 LOG.parent.mkdir(exist_ok=True)
 log.to_csv(LOG, index=False)
 t = log[log.traded == True]  # noqa: E712
-print(f"Forward Test: {len(log)} Sessions, {len(t)} trades, total {t.r.sum():+.2f}R, "
-      f"win {(t.r > 0).mean() if len(t) else 0:.0%}")
+print(f"Forward Test: {len(log)} Sessions | ORB v1: {len(t)} trades, total {t.r.sum():+.2f}R, "
+      f"win {(t.r > 0).mean() if len(t) else 0:.0%} | Ensemble: total {log.ensemble_r.sum():+.2f}R")

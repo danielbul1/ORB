@@ -43,6 +43,7 @@ DEFAULTS = dict(
     pdhl_block=0.0,     # skip if prior day high (longs) / low (shorts) lies within x ATR ahead of entry
     cost=1.0,           # points round trip
     cost_bp=None,       # if set, round-trip cost in basis points of the entry price instead of `cost`
+    cost_floor=0.0,     # with cost_bp: never charge less than this many points
 )
 
 
@@ -243,7 +244,7 @@ def run(d, **p):
     stop_fill = np.where(direction > 0, np.minimum(stop_px, o_at), np.maximum(stop_px, o_at))
     exit_px = np.where(first == js_, stop_fill,
                        np.where(first == jt, tgt if tgt is not None else 0.0, d.c[rows, fc]))
-    cost = p["cost"] if p["cost_bp"] is None else p["cost_bp"] * 1e-4 * entry
+    cost = p["cost"] if p["cost_bp"] is None else np.maximum(p["cost_bp"] * 1e-4 * entry, p["cost_floor"])
     pnl = direction * (exit_px - entry) - cost
     r = pnl / np.where(risk > 0, risk, np.nan)
 

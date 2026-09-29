@@ -40,14 +40,15 @@ def grid(space):
     return [dict(zip(keys, v)) for v in itertools.product(*space.values())]
 
 
-def walk_forward(d, family, space, key="score", min_trades=60):
+def walk_forward(d, family, space, key="score", min_trades=60, start=None, end=None):
     """Tune on years < Y, test on Y, for Y in WF_START..WF_END. Returns stitched OOS daily P&L and choices."""
     yrs = years_of(d)
     params = grid(space)
     cache = {i: family(d, **p) for i, p in enumerate(params)}
     oos = np.zeros(len(d.dates))
     picks = []
-    for y in range(WF_START, WF_END + 1):
+    start, end = start or WF_START, end or WF_END
+    for y in range(start, end + 1):
         tr, te = yrs < y, yrs == y
         best, best_v = None, -np.inf
         for i, p in enumerate(params):
@@ -58,8 +59,7 @@ def walk_forward(d, family, space, key="score", min_trades=60):
             continue
         oos[te] = cache[best][te]
         picks.append((y, params[best], round(best_v, 2), stats(cache[best][te])["score"]))
-    wf = yrs <= WF_END
-    wf &= yrs >= WF_START
+    wf = (yrs <= end) & (yrs >= start)
     return oos, picks, stats(oos[wf])
 
 

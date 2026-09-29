@@ -67,3 +67,29 @@ Frozen ORB v1 on 13 unseen years of Nasdaq-100 data (3,323 Sessions):
 - Yearly Score: 2003 +3.6k, 2004 +0.8k, 2005 +1.3k, 2006 −2.0k, 2007 −0.6k, 2008 +9.9k, 2009 −0.5k, 2010 +1.8k, 2011 +4.6k, 2012 −1.7k, 2013 −1.3k, 2014 +7.8k, 2015 +0.6k.
 
 **Meaning:** the long-run Edge is weakly positive, and 2016–2026 was either an unusually good regime for Nasdaq opening momentum (leveraged ETFs, 0DTE and retail flows grew over this period) or partly overfit. Most likely both. The Forward Test is now the judge.
+
+## 23-year research base (NAS100 2003–2016 + NQ 2016–2026)
+- **Data fix:** the NQ/ES continuous series were not adjusted for contract rolls. LSE rolls at a low-volume 19:00–20:59 ET bar in the days before expiry week, and since the 2022 rate rises the carry is about +1%. That polluted expiry-week Monday gaps (+0.7 ATR) and ATR. `orb.data.back_adjust` now ratio-adjusts at each roll. Impact on ORB v1 was small (2016–24 Sharpe 1.39, 2025–26 1.30).
+- **ES at a realistic 0.5 pt cost:** Sharpe 0.10, i.e. break-even, not −0.46. The Edge is still mostly Nasdaq-specific; ES was partly failing because it was charged too much.
+- **Costs in both eras:** 0.83 bp of price, at least 0.5 pt.
+
+### Two-era grid (1,440 variants, ranked by the worse era)
+The top 25 are all **opening-candle direction + with the gap + ATR stop on a 30–60-min range**: Sharpe 0.85–1.1 in *both* eras, a broad plateau, and consistent with Gao et al.'s first-half-hour momentum. Walk-forward over 2006–2024: Sharpe 0.84 (2006–15) and 0.83 (2016–24), 16 of 19 years positive. The 30-min version loses in 2025–26 (Sharpe −0.88), though, so the best range length drifts.
+
+### 🧺 OR-length ensemble (ORB v1 rules on 5/15/30/60-min ranges, ¼ risk each, untuned)
+| | 2003–15 | 2016–24 | 2025–26 (spent) |
+|---|---|---|---|
+| ORB v1 (5m) | Sharpe −0.06 | 1.47 | 1.21 |
+| **Ensemble** | **0.89** | **1.50** | 0.41 |
+- The ensemble is positive in **20 of 22 years** and roughly halves the worst drawdown. Member correlations are 0.23–0.49.
+- **Trailing-Sharpe rotation** among members: about 0.9 / 1.35 / 0.75. Mixed against equal weights, so it isn't adopted. The trailing year currently weights **100% on 5m**.
+
+### Mechanism: leveraged ETFs
+- **ORB-5's yearly Sharpe vs leveraged-ETF dollar volume** ((TQQQ + SQQQ + QLD) × 3 / QQQ): correlation **+0.60**, Spearman +0.66, over 2006–2026.
+- **30m and 60m:** about 0.
+- The 5m Edge appeared as leveraged-ETF flows grew, which fits the theory that front-running the rebalancing flow makes the very first move persist.
+- **Caveat:** both series trend upward over time, so 0DTE or retail flows could be the true driver. This is supporting evidence, not a rule.
+
+### Status
+- **Forward Test** (from 2026-09-30): both **ORB v1** and the **Ensemble** are logged daily by `tools/forward_test.py` (Windows task "ORB Forward Test", weekdays 23:30 local time).
+- **Deflated Sharpe** of ORB v1 in-sample is about 0.79, so no real money until the Forward Test agrees.

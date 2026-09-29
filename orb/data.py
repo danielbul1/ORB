@@ -30,14 +30,46 @@ class Days:
         return Days(**{k: getattr(self, k)[mask] for k in self.__dataclass_fields__})
 
 
-def build(csv_path, cache_path=None):
+def back_adjust(df):
+    """Ratio back-adjust a continuous futures series at its quarterly rolls.
+
+    London Strategic Edge switches NQ/ES contracts in the evening (19:00-20:59 ET, usually Sunday, sometimes
+    Monday) in the days before expiry week (third Friday of Mar/Jun/Sep/Dec). The carry shows up as one
+    low-volume bar-to-bar jump: about +1% since rates rose in 2022, negligible before. The 18:00 reopen is
+    excluded because its jump is the real weekend gap. For each quarter we take the largest such jump in the
+    8 days before expiry and, if it exceeds 0.15%, scale every earlier price by open/previous close.
+    """
+    t = pd.to_datetime(df["time"], unit="s", utc=True).dt.tz_convert("America/New_York")
+    jump_ratio = (df["open"] / df["close"].shift(1)).values
+    evening = ((t.dt.hour >= 19) & (t.dt.hour <= 20)).values
+    factor = np.ones(len(df))
+    for y in range(t.dt.year.min(), t.dt.year.max() + 1):
+        for m in (3, 6, 9, 12):
+            first = pd.Timestamp(y, m, 1, tz="America/New_York")
+            expiry = first + pd.Timedelta(days=(4 - first.weekday()) % 7 + 14)
+            w = np.flatnonzero(((t >= expiry - pd.Timedelta(days=8)) & (t < expiry)).values & evening)
+            w = w[w > 0]
+            if len(w) == 0:
+                continue
+            j = w[np.argmax(np.abs(np.log(jump_ratio[w])))]
+            if abs(jump_ratio[j] - 1) > 0.0015:
+                factor[:j] *= jump_ratio[j]
+    out = df.copy()
+    for k in ("open", "high", "low", "close"):
+        out[k] = out[k] * factor
+    return out
+
+
+def build(csv_path, cache_path=None, adjust=False):
     cache = Path(cache_path) if cache_path else None
     if cache and cache.exists():
         z = np.load(cache)
         return Days(**{k: z[k] for k in z.files})
 
     df = pd.read_csv(csv_path)
-    ts = pd.to_datetime(df["time"], unit="s", utc=True).dt.tz_convert("America/New_York")
+    if adjust:
+        df = back_adjust(df)
+    ts =pd.to_datetime(df["time"], unit="s", utc=True).dt.tz_convert("America/New_York")
     minute = ts.dt.hour * 60 + ts.dt.minute - (9 * 60 + 30)
     keep = (minute >= 0) & (minute < RTH_BARS) & (ts.dt.dayofweek < 5)
     df, ts, minute = df[keep], ts[keep], minute[keep]

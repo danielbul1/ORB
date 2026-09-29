@@ -23,7 +23,8 @@ SPLITS = {"train": ("2016-01-01", "2021-12-31"), "val": ("2022-01-01", "2024-12-
 
 
 def load(csv=CSV, name="nq"):
-    return build(csv, ROOT / "data" / f"{name}_rth.npz")
+    """Futures Sessions, back-adjusted at contract rolls (orb.data.back_adjust)."""
+    return build(csv, ROOT / "data" / f"{name}_adj_rth.npz", adjust=True)
 
 
 def masks(d):
