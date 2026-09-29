@@ -41,6 +41,7 @@ DEFAULTS = dict(
     rsi_block=0,        # skip longs if RSI(70 x 1m ~ 14 x 5m) > rsi_block, shorts if < 100 - rsi_block
     pdhl_block=0.0,     # skip if prior day high (longs) / low (shorts) lies within x ATR ahead of entry
     cost=1.0,           # points round trip
+    cost_bp=None,       # if set, round-trip cost in basis points of the entry price instead of `cost`
 )
 
 
@@ -239,7 +240,8 @@ def run(d, **p):
     stop_fill = np.where(direction > 0, np.minimum(stop_px, o_at), np.maximum(stop_px, o_at))
     exit_px = np.where(first == js_, stop_fill,
                        np.where(first == jt, tgt if tgt is not None else 0.0, d.c[rows, fc]))
-    pnl = direction * (exit_px - entry) - p["cost"]
+    cost = p["cost"] if p["cost_bp"] is None else p["cost_bp"] * 1e-4 * entry
+    pnl = direction * (exit_px - entry) - cost
     r = pnl / np.where(risk > 0, risk, np.nan)
 
     return dict(ok=ok, dir=direction, entry=entry, stop=stop, risk=risk, e=e, x=first,

@@ -12,3 +12,4 @@ data/*.npz
 .env
 research/community/*.pine
 jev_cache/
+data/ext/

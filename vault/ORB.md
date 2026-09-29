@@ -6,3 +6,4 @@ Opening Range Breakout strategy notes.
 - TradingView bridge: `tools/tradingview-mcp`
 - [[Research/ORB Literature Review]] · [[Research/ORB Backtest Results]]
 - [[Research/Community ORB Scripts]] · [[Research/QuantFlowLabs ORB]]
+- [[Research/Edge Hunt Log]]
