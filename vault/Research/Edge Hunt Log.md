@@ -158,15 +158,28 @@ Source: [[arXiv ORB Sweep]]. Scored on the 23-year base, Sharpe A 2003–15 / B 
 
 | # | Kind | Hypothesis (fixed rule) | Result |
 |---|---|---|---|
-| H1 | Filter | **VIX calm skip:** no trade when VIX prior close < 20th percentile of its last 252 closes | – |
-| H2 | Filter | **VIX shock:** trade only when \|VIX open / prior close − 1\| ≥ 3% (either direction). Only years where the VIX open is a real print (open ≠ prior close on > 90% of days) are used | – |
-| H3 | Day Type | **CPI / NFP days:** on 08:30 CPI or NFP release days, trade only the 30- and 60-minute Legs | – |
-| H4 | Filter (size) | **Overnight compression:** Globex range (18:00–09:29) < 0.5 × ATR14 → full size, otherwise half size | – |
-| H5 | Filter | **NQ leads ES:** take a Leg only if NQ's OR move ÷ its ATR14 exceeds ES's, with the same sign (era B only; A has no ES; the pass bar applies to B + 2025–26) | – |
-| H6 | Filter | **Compression yesterday:** trade only after an NR7 or inside day | – |
-| H7 | Member | **Against-gap:** on days where the OR candle closes against the gap (days v3 skips), trade in the OR-candle direction with v3's Leg rules | – |
-| H8 | Member | **Low-τ VWAP reversion:** on days v3's τ gate blocks (τ < 1), after 10:00 fade the first touch of the 30-min OR high/low; target session VWAP, stop 0.25 × ATR14 beyond the extreme, flat 15:59, one trade per day | – |
-| H9 | Member | **Globex extreme breakout:** after 09:35, first break of the overnight high/low, entry in the break direction; stop 0.10 × ATR14, v3 trail, flat 15:59, one trade per day | – |
-| H10 | Member | **Prior-day extreme breakout:** as H9 with the prior Session's high/low as the level | – |
+| H1 | Filter | **VIX calm skip:** no trade when VIX prior close < 20th percentile of its last 252 closes | ❌ skips more good days than bad: B Score ↑ (3,808) but Sharpe 1.49 < 1.65 and Prop $234 < $379; A worse |
+| H2 | Filter | **VIX shock:** trade only when \|VIX open / prior close − 1\| ≥ 3% (either direction). Only years where the VIX open is a real print (open ≠ prior close on > 90% of days) are used | ❌ cuts ~60% of trades; B Sharpe 1.05 vs 1.66, Prop $90 vs $411 |
+| H3 | Day Type | **CPI / NFP days:** on 08:30 CPI or NFP release days, trade only the 30- and 60-minute Legs | ❌ close to v3 but lower on both measures in B (Score 3,303 vs 3,527, Prop $351 vs $379); A Sharpe 1.29 vs 1.32 |
+| H4 | Filter (size) | **Overnight compression:** Globex range (18:00–09:29) < 0.5 × ATR14 → full size, otherwise half size | ❌ (B only) Sharpe 1.54 vs 1.65, Prop $291 vs $379; half-size days are not worse days |
+| H5 | Filter | **NQ leads ES:** take a Leg only if NQ's OR move ÷ its ATR14 exceeds ES's, with the same sign (era B only; A has no ES; the pass bar applies to B + 2025–26) | ❌ (B only) Score ↑ 3,928 but Sharpe 1.61 < 1.65 and Prop $341 < $379 |
+| H6 | Filter | **Compression yesterday:** trade only after an NR7 or inside day | ❌ keeps 23% of days; B Sharpe 0.90, Prop −$3 |
+| H7 | Member | **Against-gap:** on days where the OR candle closes against the gap (days v3 skips), trade in the OR-candle direction with v3's Leg rules | ❌ loses alone in both eras (Sharpe −0.37 / −0.32); corr 0.00 but no Edge |
+| H8 | Member | **Low-τ VWAP reversion:** on days v3's τ gate blocks (τ < 1), after 10:00 fade the first touch of the 30-min OR high/low; target session VWAP, stop 0.25 × ATR14 beyond the extreme, flat 15:59, one trade per day | ❌ loses alone (Sharpe −0.69 / −0.43), win rate 66% but losers are big; fails at stops 0.125–0.375 |
+| H9 | Member | **Globex extreme breakout:** after 09:35, first break of the overnight high/low, entry in the break direction; stop 0.10 × ATR14, v3 trail, flat 15:59, one trade per day | ❌ (B only) alone Sharpe −0.14, corr +0.21; 0.15 ATR stop +0.28 is not enough |
+| H10 | Member | **Prior-day extreme breakout:** as H9 with the prior Session's high/low as the level | ❌ loses alone in A (−0.87) and B (−0.17) |
 
 Run order: H7, H8, then H1–H6, then H9, H10. If none pass, Ensemble v3 stays the best Rule Set.
+
+**Amendments before any run (2026-09-30), forced by data limits, not by results:**
+- Era A (NAS100 2003–15) has **RTH bars only**, with no overnight data. So H4 and H9 can be tested only in era B. For them the pass bar is B plus 2025–26 not negative. A pass counts as *provisional* (one era).
+- The economic calendar (ForexFactory export) starts in 2007, so H3's era A covers 2007–15.
+- H8's "v3 blocks" = none of the 5/15/30-min Legs passes τ ≥ 1, which is known at 10:00. The 60-min Leg is excluded because it would only be known at 10:30.
+- Portfolio Member combination: v3 + Member at 1:1 in R. For the Prop Score, the combined series is scaled so its era-B max drawdown equals v3's, then priced at v3's $960 → $640 per R.
+- Prop Score setup = Flex 150K (target $9k, max loss $4.5k, 2-year windows), reproducing $379/month for v3 in era B. H9/H10 entries use v3's 120-minute cutoff and skip a side whose level already traded during 09:30–09:34.
+
+### Verdict (run 2026-09-30, `research/beat_v3.py`): 0 of 10 pass → **Ensemble v3 stays the best Rule Set**
+- No Hypothesis beat v3 on Score **and** Prop Score in both eras, and every plateau check failed too, so no DSR was needed (N = 22 variants).
+- **Pattern:** Filters that remove days (H1, H2, H5, H6) sometimes raise Score by cutting the drawdown, but always lower the Sharpe and the Prop Score. v3's big-day profit comes from days that look ordinary beforehand. Every new family (H7–H10) loses on its own. The four Legs of v3 already cover the ORB idea on NQ.
+- **Warning found along the way:** v3's Prop Score on Flex 150K in 2025–26 (1-year windows) is **−$16/month**, against +$277 in 2016–24 with the same window. The spent period is weaker than the research years (Sharpe 0.72 vs 1.65). Size the live test for this, not for the in-sample $379.
+- **What's left to try (new information only):** news catalysts via Jev (ADR 0003, pull still running), and live-execution data from the Forward Test. More price- or calendar-based Filters on v3 are unlikely to help.
