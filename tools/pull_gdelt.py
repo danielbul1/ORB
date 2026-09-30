@@ -38,6 +38,10 @@ def main():
     days = [x for x in d.dates if x >= np.datetime64("2017-02-20")]
     prev = {d.dates[i]: d.dates[i - 1] for i in range(1, len(d.dates))}
     todo = [x for x in days if not (OUT / f"{x}.json").exists()]
+    need = ROOT / "data" / "news_needed.npy"  # Sessions where the Ensemble trades: only these affect the test
+    if need.exists():
+        first = set(np.load(need).tolist())
+        todo.sort(key=lambda x: (x not in first, x))
     print(f"{len(todo)} Sessions to fetch", flush=True)
     for n, day in enumerate(todo):
         a, b = window(prev[day], day)
