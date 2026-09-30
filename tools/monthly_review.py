@@ -82,6 +82,9 @@ if __name__ == "__main__":
     out.parent.mkdir(exist_ok=True)
     with open(out, "w", encoding="utf8") as f:
         sys.stdout = _Tee(sys.__stdout__, f)
-        print(f"Monthly review, generated {pd.Timestamp.now():%Y-%m-%d %H:%M}
-")
-        main()
+        try:
+            print(f"Monthly review, generated {pd.Timestamp.now():%Y-%m-%d %H:%M}")
+            print()
+            main()
+        finally:
+            sys.stdout = sys.__stdout__

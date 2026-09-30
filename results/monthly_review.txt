@@ -1,0 +1,12 @@
+Monthly review, generated 2026-09-30 12:03
+
+Forward Test nan .. nan: 0 Sessions
+
+== ORB v1
+   trades 0 | total +0.00R | win 0% | drawdown 0.0R (historical worst 18.2R) | losing streak now 0, worst 0 (historical worst 16)
+   OK: within historical norms. No changes (ADR 0005).
+== Ensemble v3
+   trades 0 | total +0.00R | win 0% | drawdown 0.0R (historical worst 14.6R) | losing streak now 0, worst 0 (historical worst 18)
+   OK: within historical norms. No changes (ADR 0005).
+
+Live fill checks: no live fills recorded yet.
