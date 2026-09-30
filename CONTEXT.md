@@ -68,3 +68,9 @@ A withdrawal from a Funded Account. On Lucid Flex 50K a request needs 5 days of 
 
 **Account Portfolio**:
 All prop accounts traded at once (Lucid: up to 5 funded, 10 in total per household). They may differ in Rule Set, size and start date so that busts and payouts don't cluster.
+
+**Kill Switch**:
+Conditions fixed in advance (ADR 0005) under which live trading stops for investigation. A losing streak alone is not one.
+
+**Scaling Ladder**:
+The fixed order in which size and accounts grow (ADR 0005). Each rung is unlocked only by evidence from the previous one.

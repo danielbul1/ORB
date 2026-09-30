@@ -75,3 +75,11 @@ Q1 Prop Score is the objective · Q2 start with a single evaluation (budget set 
 1. Buy **one Flex 150K** evaluation. Trade Ensemble v3 at **1 MNQ/member** ($320/R) as a live execution test.
 2. Connect TradingView alerts → Lucid's platform (Tradovate / TradingView via CQG, or Rithmic). Automation is allowed.
 3. Scale to 3/2 MNQ per member and add accounts (up to 5 funded) once the Forward Test and the live fills match the backtest.
+
+## Execution decisions (2026-09-30, ADR 0005)
+- **Platform:** Tradovate / TradingView-CQG route recommended; confirming once the automation-bridge research returns.
+- **Kill switch:** stop and investigate if fills average > 2 ticks worse than the engine over 10 trades, if a live trade differs from the forward log, or if the drawdown exceeds 1.5× the historical worst (Ensemble v3 ≈ 22R). Losing streaks under 25 trades are normal: no rule changes.
+- **Scaling Ladder:** 1 Flex 150K at 1 MNQ per member for 20 clean live days → full sizes → a 2nd staggered account after the first payout → one more at a time, up to 5 funded.
+- **The trader watches the first 3–5 live days** (16:35–17:30 local), with a manual flatten ready.
+- **Monthly review:** `tools/monthly_review.py` (Windows task "ORB Monthly Review", every 4 weeks, Saturdays) writes `results/monthly_review.txt`.
+- **Research continues:** Jev news test (GDELT pull, slow) and monthly re-validation; SOX / NVDA cross-market check when convenient.
