@@ -95,12 +95,13 @@ Q1 Prop Score is the objective · Q2 start with a single evaluation (budget set 
 - NinjaScript supports unique entry names + `StopTargetHandling.PerEntryExecution` + `SetStopLoss` / `SetProfitTarget(fromEntrySignal)`, so each member has its own resting broker stop and target. The trail is custom code moving each stop; a disconnect freezes the trail, but the resting stops still protect.
 - **No NT license needed** for Tradovate-credential prop accounts. VPS about $15–80/mo.
 - **Rejected:** direct Tradovate API (closed to prop / eval accounts); PickMyTrade (`update_sl` changes all legs at once); TradersPost (no trail activation offset).
-- **Code:** `ninja/ORBEnsembleV3.cs`. Not compiled yet; needs an NT compile plus a Strategy Analyzer parity check against the Python engine.
+- **Code:** `ninja/ORBEnsembleV3.cs`. Not compiled yet; needs an NT compile plus a Strategy Analyzer parity check against the Python engine. Reviewed 2026-09-30: fixed the half-day carry-over (exit-on-session-close backstop) and the RTH-chart next-day exit (the flatten is now at the 15:55 open).
 
 ## Go-live checklist
 1. Buy **Lucid Flex 150K** on the **CQG** feed (use a discount code).
 2. Rent a **Windows VPS in Chicago**; install **NinjaTrader 8**; connect with Lucid's Tradovate / CQG credentials.
 3. Import `ninja/ORBEnsembleV3.cs` (NinjaScript Editor → compile). Fix any compile errors with Claude.
-4. **Strategy Analyzer** on MNQ 5-min, last ~6 months → export trades → Claude compares with the Python engine (parity).
+4. **Strategy Analyzer** on MNQ 5-min, last ~6 months → Trades tab → right-click → Export CSV → `python tools/nt_parity.py <file> --tz <NT time zone>`. Pass = same Sessions, Legs and direction, and entry within 1 tick. Exits may differ slightly (NT flattens at 15:55 on 5-min bars; the engine at 15:59 on 1-min bars).
+   - **Size for 2025–26, not the in-sample result:** v3's Prop Score on Flex 150K in 2025–26 was about −$16/month (Edge Hunt Log, ADR 0006 run). Keep the live test at 1 MNQ per Leg (RiskUsd ≈ 80).
 5. Run on **Sim101 / Playback** for 3–5 days, then enable on the evaluation at **RiskUsd = $80 (1 MNQ per member)**. The trader watches the first 3–5 live days (ADR 0005).
 6. Record live fills in `results/live_fills.csv` for the monthly review's fill check.

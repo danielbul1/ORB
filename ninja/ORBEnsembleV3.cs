@@ -2,16 +2,18 @@
 // orb/families.py ENSEMBLE_V3. Run on a 5-minute MNQ (or NQ) chart with ETH or RTH data; the logic uses
 // New York regular hours (09:30-16:00 ET) itself.
 //
-// Per member (opening-range length 5/15/30/60 min), at the close of the bar that completes its range:
+// Per Leg (opening-range length 5/15/30/60 min), at the close of the bar that completes its range:
 //   direction = sign(close - 09:30 open); trade only if it agrees with the overnight gap (09:30 open vs
 //   prior RTH close), |body| >= 0.05 x RTH ATR14, price is on the trade side of RTH VWAP and of an RTH
 //   EMA (200 one-minute bars = 40 five-minute bars), stop >= 4 x round-trip cost, and the trend-strength
 //   gate tau = ln(close/open) / (sigma5 x sqrt(len/5)) >= 1.0 (sigma5 = std of RTH 5-min log returns,
 //   averaged over the prior 20 days). Enter at the next bar open.
 //   Stop 0.10 x ATR14, target 10R (native orders per entry signal), trail 0.3 x ATR14 behind the best
-//   price once 2R in profit, flat at 15:55-bar close (and Lucid auto-flattens at 16:45 ET).
+//   price once 2R in profit. Flat: market exit at the 15:55 bar open (placed when the 15:50-15:55 bar closes,
+//   so it fills the same day on RTH or ETH charts), plus NinjaTrader's exit-on-session-close as a backstop
+//   for half days (13:00 ET close). Lucid also auto-flattens at 16:45 ET.
 //
-// Managed approach, EntryHandling.UniqueEntries + StopTargetHandling.PerEntryExecution: each member
+// Managed approach, EntryHandling.UniqueEntries + StopTargetHandling.PerEntryExecution: each Leg
 // ("E5","E15","E30","E60") has its own stop-market and limit orders held at the broker, so a lost
 // connection doesn't leave a position unprotected.
 #region Using declarations
@@ -57,19 +59,20 @@ namespace NinjaTrader.NinjaScript.Strategies
         [NinjaScriptProperty, Display(Name = "Trail arms at R", Order = 8, GroupName = "Rules")] public double TrailAt { get; set; }
         [NinjaScriptProperty, Display(Name = "Trend gate tau", Order = 9, GroupName = "Rules")] public double TauMin { get; set; }
         [NinjaScriptProperty, Display(Name = "Tau sigma days", Order = 10, GroupName = "Rules")] public int TauWin { get; set; }
-        [NinjaScriptProperty, Display(Name = "Risk per member (USD), min 1 contract", Order = 11, GroupName = "Sizing")] public double RiskUsd { get; set; }
+        [NinjaScriptProperty, Display(Name = "Risk per Leg (USD), min 1 contract; Ensemble $/R = 4 x this", Order = 11, GroupName = "Sizing")] public double RiskUsd { get; set; }
 
         protected override void OnStateChange()
         {
             if (State == State.SetDefaults)
             {
                 Name = "ORBEnsembleV3";
-                Description = "ORB Ensemble v3 (5/15/30/60-min members), see github.com/danielbul1/ORB";
+                Description = "ORB Ensemble v3 (5/15/30/60-min Legs), see github.com/danielbul1/ORB";
                 Calculate = Calculate.OnBarClose;
                 EntriesPerDirection = 4;
                 EntryHandling = EntryHandling.UniqueEntries;
                 StopTargetHandling = StopTargetHandling.PerEntryExecution;
-                IsExitOnSessionCloseStrategy = false;   // we flatten ourselves at 15:55 ET
+                IsExitOnSessionCloseStrategy = true;    // backstop for half days; normally we are flat at 15:55 ET
+                ExitOnSessionCloseSeconds = 300;
                 BarsRequiredToTrade = 1;
                 StopX = 0.10; TargetR = 10; BodyMin = 0.05; EmaMinutes = 200; RtCost = 1.0; MinRiskX = 4;
                 TrailX = 0.3; TrailAt = 2.0; TauMin = 1.0; TauWin = 20; RiskUsd = 100;
@@ -144,7 +147,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void ManageOpen(bool inRth, double barEnd)
         {
             if (Position.MarketPosition == MarketPosition.Flat) return;
-            if (inRth && barEnd >= 390)   // the 15:55-16:00 bar has closed: flat for the day
+            if (inRth && barEnd >= 385)   // the 15:50-15:55 bar has closed: exit at the next open, same day
             {
                 foreach (int len in Lens) { ExitLong("EOD", "E" + len); ExitShort("EOD", "E" + len); }
                 return;
