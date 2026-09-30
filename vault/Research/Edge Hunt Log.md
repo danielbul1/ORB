@@ -187,3 +187,9 @@ Run order: H7, H8, then H1–H6, then H9, H10. If none pass, Ensemble v3 stays t
 ## TradingView checks (2026-09-30, TV MCP)
 - **Pine parity refresh, Ensemble v3 on NQ1! 5m:** TradingView's ~1 month of 5-minute history leaves a single post-warm-up Session (09-28). On it, all 4 Legs match the engine: same Legs, all short, entries within 1–2 ticks (feed difference, CME_MINI_DL vs LSE), and the same trail exits (30477.5 vs 30476.0) and ORB-15 stop. The engine's other September trades (09-03 … 09-25) fall inside TradingView's 20-day τ warm-up.
 - **TradingView news feed as a headline source for ADR 0003:** it pages back only to **2022-09**, even for SPX (~6 headlines/day), NDX and QQQ. It cannot cover the pre-registered 2017–2021 window, so GDELT stays the source.
+
+## H11: absolute dealer-gamma sizing gate (ADR 0007, registered 2026-09-30, before the run)
+- **Rule:** g = GEX(t−1)/SPX(t−1) (SqueezeMetrics). Full size if GEX ≤ 0 or g ≤ the expanding 1/3 quantile (2011-05 → t−1, ≥ 252 values); otherwise ¼ size. v3 Legs unchanged.
+- **Why it's new:** Round 1 used the trailing-year *rank* on ORB v1 (and skipped days). A rank can't express "gamma was high all year", which is the 2025-26 decay story.
+- **Pass:** beat v3 on Score, Sharpe and Prop Score (Prop rescaled to v3's era-B max DD) in era A (2012-05 → 2015, where the gate is defined) **and** B 2016-24. 2025-26 is information only.
+- **Info only:** plateau (cut 1/4 and 1/2; off-size 0 and 0.5), v3 R per year and per GEX regime.
