@@ -142,3 +142,10 @@ Source: [[arXiv ORB Sweep]]. Scored on the 23-year base, Sharpe A 2003–15 / B 
 | N3 same-slot persistence | On NQ it **reverses** (opposite to stocks): t −2.2 to −3.3 at k = 10–20 days in both eras. As a filter, A 0.76 and 25–26 −0.01 | | ❌ real effect, not tradable |
 
 **Ensemble v3** = `orb.families.ENSEMBLE_V3`. It is in the Forward Test (column `ensemble_v3_r`) and in TradingView "ORB Ensemble", with parity on 09-28. The earlier days are TradingView warm-up, since σ needs 20 days of 5-minute history.
+
+## Trend-Day Engine (learned entries) vs Ensemble v3 (2026-09-30)
+**Idea:** instead of 4 fixed OR times, score checkpoints at 5 / 15 / 30 / 45 / 60 / 75 / 90 min with a ridge model on 12 pre-entry features (gap, move, τ, VWAP, EMA, OR range, rel. volume, time, prior-day and 5-day returns, vol regime). Walk-forward yearly on the 23-year base; enter at the first checkpoint whose predicted E[R] ≥ threshold; same bracket as v3. Code: `orb/trendday.py`.
+- ⚠️ **The first run showed Sharpe 4–5: a look-ahead bug.** "Previous-day return" was actually *today's* close − yesterday's close (correlation with R 0.32, against ≤ 0.04 for every other feature). It is fixed and documented in the code.
+- **After the fix:** best is 1.14 / 1.51 / 0.72 vs **Ensemble v3 1.14 / 1.65 / 0.72**. Other settings range 0.44–1.19 / 1.30–1.74 / 0.02–0.69. The shuffled-label control gives −0.2 / −0.2 / −1.3, so no leak remains.
+- **Verdict ❌ not adopted.** The learned model rediscovers the hand-built rules (opening move + gap + trend strength) and doesn't beat them.
+- **Meaning:** v3 already captures most of what price-derived features know. Further gains need **new information** (news via Jev, payout-aware design, live execution data), not more models on the same bars.
