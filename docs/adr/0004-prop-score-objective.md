@@ -1,0 +1,5 @@
+# Prop Score is the objective for prop-firm trading
+
+The goal is the most money from prop firms (Lucid). Evaluation pass rate alone is misleading: money only arrives through Payouts, and those have their own rules (Lucid Flex 50K: 5 days of ≥ $150 per cycle, payout ≤ 50% of profit and ≤ $2,000). A Rule Set that passes quickly but rarely meets payout rules earns nothing. From 2026-09-30 prop trading is optimised for Prop Score: expected net $/month across the Account Portfolio (90% of payouts − fees − resets), simulated through the Evaluation and the funded phase with official Lucid rules. Sizes are chosen separately for the Evaluation and the Funded Account. Payout-aware variants (e.g. partial take-profit) are allowed, but each must still be positive in both eras (the Edge test stays). The first money spent is a single Flex 50K Evaluation at 1 MNQ as a live execution test; scaling waits for the Forward Test.
+
+Considered: maximising Evaluation pass rate (last session's view). Rejected because it ignores the funded phase, which is where all the money is.

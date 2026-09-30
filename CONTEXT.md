@@ -53,3 +53,18 @@ Several Rule Sets traded together. Each one earns its place by adding to the Por
 
 **Day Type**:
 A label for a Session known before its open (for example CPI day, FOMC day, mega-cap earnings day), used to switch Rule Sets on or off.
+
+**Prop Score**:
+The objective for prop-firm trading: expected net dollars per month across the Account Portfolio, meaning 90% of payouts received minus evaluation and reset fees, simulated under the firm's exact evaluation *and* funded rules. It replaces Score when choosing how to trade prop accounts. Score still judges whether a Rule Set has an Edge.
+
+**Evaluation**:
+A paid prop-firm challenge. It is passed by reaching the profit target without breaching the max loss (and, on Lucid Flex, with the largest day ≤ 50% of profit). No money is paid out.
+
+**Funded Account**:
+A prop account that has passed its Evaluation. Money leaves it only through Payouts, under the firm's payout rules.
+
+**Payout**:
+A withdrawal from a Funded Account. On Lucid Flex 50K a request needs 5 days of ≥ $150 in the cycle; it is capped at 50% of profit and $2,000, and the trader receives 90%.
+
+**Account Portfolio**:
+All prop accounts traded at once (Lucid: up to 5 funded, 10 in total per household). They may differ in Rule Set, size and start date so that busts and payouts don't cluster.

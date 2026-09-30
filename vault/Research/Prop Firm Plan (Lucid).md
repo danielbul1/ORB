@@ -54,3 +54,24 @@ Feasible sizes: 1 MNQ ≈ $80 per R at today's ATR. The Ensemble needs 1 MNQ per
 - **Q5:** allow payout-aware variants (partial take-profit at about +1R to create more ≥ $150 days), judged by Prop Score and required to stay positive in both eras. Recommended.
 - **Q6:** start with one Flex 50K eval at 1 MNQ now as a real-money execution test; scale after the Forward Test agrees. Recommended.
 - **Also open:** the user saw a "$44k profit" on a strategy or indicator in TradingView on 2026-09-29. It wasn't found on the current chart (ORB Ensemble on NQ1! 5m shows +$8,045: 4 trades, 1 NQ per member). Ask the user for the script name or a Strategy Tester screenshot, then reproduce it on the 23-year base.
+
+## Decisions (2026-09-30): the user accepted all recommendations Q1–Q6 → ADR 0004
+Q1 Prop Score is the objective · Q2 start with a single evaluation (budget set later) · Q3 staggered portfolio · Q4 separate eval / funded sizes · Q5 payout-aware variants allowed but must earn their place · Q6 one evaluation first, as a live execution test.
+
+## Prop Score results (`orb/propscore.py`: full Lucid Flex lifecycle, NQ 2016–2024, 2-year rolling windows)
+| Account | Setup (eval → funded $/R) | Net $/month/slot | p10 | Losing windows | Payouts/yr |
+|---|---|---|---|---|---|
+| Flex 50K | Ensemble v3 640 → 480 | 267 | +36 | 0% | 4.5 |
+| Flex 100K | Ensemble v3 960 → 640 | 325 | +32 | 1% | 4.5 |
+| **Flex 150K** | **Ensemble v3 960 → 640** | **378** | **+83** | **0%** | **4.5** |
+| Flex 150K | ORB v1 + Ens v3 960 → 960 | 399 | −32 | 16% | 4.1 |
+| Flex 50K | ORB v1 alone 160 → 160 (1-year windows) | 70 | −20 | 41% | 0.8 |
+- **Q5 answered by data:** partial take-profit at 1R (33–50%) lowers Prop Score in every case. Rejected.
+- **Best slot: Flex 150K with Ensemble v3,** 3 MNQ per member in the eval ($960/R) and 2 per member funded ($640/R).
+- **5 funded slots ≈ $1,500–1,900/month historically.** Slots are correlated (identical signals), so outcomes cluster.
+- **Caveats:** in-sample rules, no slippage, fees estimated with a 40% code, live stage not credited.
+
+## Next steps
+1. Buy **one Flex 150K** evaluation. Trade Ensemble v3 at **1 MNQ/member** ($320/R) as a live execution test.
+2. Connect TradingView alerts → Lucid's platform (Tradovate / TradingView via CQG, or Rithmic). Automation is allowed.
+3. Scale to 3/2 MNQ per member and add accounts (up to 5 funded) once the Forward Test and the live fills match the backtest.
