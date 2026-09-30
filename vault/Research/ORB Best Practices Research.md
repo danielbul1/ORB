@@ -15,7 +15,7 @@ Tags: **Verified** = we read the primary text or data. **Snippet** = abstract, s
 
 | # | Action | Why | Data | Evidence |
 |---|---|---|---|---|
-| 1 | **Dealer-gamma regime gate** (SqueezeMetrics free daily GEX, prior close) | Long dealer gamma causes *negative* intraday momentum. Negative-GEX days nearly vanished in 2024-26, which likely explains the decay | Free CSV, 2011→today | Strong mechanism + Verified data |
+| 1 | ~~**Dealer-gamma regime gate**~~ **TESTED 2026-09-30: FAIL** (H11, see [[Edge Hunt Log]]; low vs high gamma R/trade +0.214 vs +0.205, t = 0.13) (SqueezeMetrics free daily GEX, prior close) | Long dealer gamma causes *negative* intraday momentum. Negative-GEX days nearly vanished in 2024-26, which likely explains the decay | Free CSV, 2011→today | Strong mechanism + Verified data |
 | 2 | **Honest execution costs**: 2-4 ticks entry slippage on MNQ, 8 ticks on high-ATR days, log fill vs trigger live | An independent 5-index replication: NQ ORB gross +0.131R becomes **net +0.002R** under CFD costs. The edge lives in the cost gap | Own data | Verified |
 | 3 | **Forward-looking range instead of ATR14**: VIX1D/VXN expected move for the stop and body; VIX1D/VIX ≥ 0.9 day filter | VIX1D beats HAR models for next-day RV (J. Futures Mkts 2025); ORB with range forecasts beats ATR (ACIIDS 2026) | Free (Cboe) | Peer-reviewed + Snippet |
 | 4 | **Event and calendar tags**: FOMC, 08:30 macro, OpEx Friday / week after, **mega-cap earnings next session** | Gao: momentum is stronger on news days. Mega-cap earnings drive index vol (Ogneva & Xia). OpEx evidence is mixed, so test rather than assume | Free | Medium |
@@ -31,7 +31,7 @@ Tags: **Verified** = we read the primary text or data. **Snippet** = abstract, s
 
 ## 1. Why the edge faded in 2025-26
 
-### 1.1 Dealer gamma is the best-supported explanation
+### 1.1 Dealer gamma is the best-supported explanation in the literature (❌ but NOT on our data: H11 failed, see [[Edge Hunt Log]])
 - **Adams et al. (2026), "Do S&P500 Options Increase Market Volatility? Evidence from 0DTEs", SSRN 5641974** (Snippet, via [QuantPedia](https://quantpedia.com/do-sp500-0dtes-options-increase-market-volatility/)).
   - Natural experiment: Tue/Thu 0DTE availability before May 2022.
   - SPX RV is 60 bp (annualized) lower on 0DTE days, and the hedging-to-vol multiplier is ≈ −4.

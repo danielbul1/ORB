@@ -1,0 +1,57 @@
+Gate defined from 2012-05-01 (3685 Sessions); full size on 37%
+
+=== H11 absolute GEX gate (cut 1/3, off 0.25)  (Prop rescale x1.72 to v3's era-B max DD)
+  A 2003-15    Sessions   927 | Score   3,089 vs   5,981 | Sharpe  1.27 vs  1.61 | Prop $   51 vs $  220 | DD 7.5R vs 8.3R  [fail]
+  B 2016-24    Sessions  2311 | Score   3,884 vs   3,527 | Sharpe  1.52 vs  1.65 | Prop $  318 vs $  379 | DD 8.7R vs 15.0R  [fail]
+  spent 25-26  Sessions   447 | Score     -84 vs   2,294 | Sharpe -0.06 vs  0.72 | Prop $  -16 vs $  -16 | DD 9.7R vs 9.5R  [info]
+  VERDICT: FAIL
+
+--- v3 by year and gamma regime (info only; R = ensemble daily R summed)
+  year  full-size days  R low-gamma  R high-gamma  R/day low  R/day high
+  2012     46 ( 28%)         +5.11        +17.57     +0.111      +0.145
+  2013     30 ( 12%)         -3.08        +13.98     -0.103      +0.063
+  2014     41 ( 16%)         -1.78        +29.20     -0.043      +0.138
+  2015    146 ( 57%)        +26.45         +3.47     +0.181      +0.032
+  2016    113 ( 44%)        +11.75         +7.32     +0.104      +0.052
+  2017     37 ( 14%)        +11.33         +1.20     +0.306      +0.005
+  2018    121 ( 47%)         +2.06        +17.64     +0.017      +0.130
+  2019    118 ( 46%)        +25.11        +17.02     +0.213      +0.122
+  2020     96 ( 38%)         +4.64         -0.43     +0.048      -0.003
+  2021     69 ( 27%)        +22.17        +19.80     +0.321      +0.105
+  2022    201 ( 79%)        +35.62         +5.34     +0.177      +0.097
+  2023    139 ( 54%)         +9.38         +2.26     +0.068      +0.019
+  2024     54 ( 21%)         +4.55        +46.56     +0.084      +0.227
+  2025     72 ( 28%)         -0.69         +0.79     -0.010      +0.004
+  2026     77 ( 40%)         -6.74        +26.01     -0.088      +0.228
+  all    1360 ( 37%)       +145.89       +207.72     +0.107      +0.089
+  per traded day: low +0.214 (n=681) vs high +0.205 (n=1014), diff t = 0.13
+
+--- plateau checks (information only, cannot rescue a fail)
+
+=== H11 plateau cut 0.25 off 0.25  (Prop rescale x2.07 to v3's era-B max DD)
+  A 2003-15    Sessions   927 | Score   3,482 vs   5,981 | Sharpe  1.35 vs  1.61 | Prop $   55 vs $  220 | DD 6.2R vs 8.3R  [fail]
+  B 2016-24    Sessions  2311 | Score   4,426 vs   3,527 | Sharpe  1.55 vs  1.65 | Prop $  330 vs $  379 | DD 7.3R vs 15.0R  [fail]
+  spent 25-26  Sessions   447 | Score    -602 vs   2,294 | Sharpe -0.56 vs  0.72 | Prop $  -29 vs $  -16 | DD 9.5R vs 9.5R  [info]
+  VERDICT: FAIL
+
+=== H11 plateau cut 0.50 off 0.25  (Prop rescale x1.42 to v3's era-B max DD)
+  A 2003-15    Sessions   927 | Score   4,441 vs   5,981 | Sharpe  1.54 vs  1.61 | Prop $  135 vs $  220 | DD 7.9R vs 8.3R  [fail]
+  B 2016-24    Sessions  2311 | Score   3,974 vs   3,527 | Sharpe  1.58 vs  1.65 | Prop $  353 vs $  379 | DD 10.6R vs 15.0R  [fail]
+  spent 25-26  Sessions   447 | Score     837 vs   2,294 | Sharpe  0.38 vs  0.72 | Prop $   26 vs $  -16 | DD 9.5R vs 9.5R  [info]
+  VERDICT: FAIL
+
+=== H11 plateau cut 0.33 off 0.0  (Prop rescale x1.80 to v3's era-B max DD)
+  A 2003-15    Sessions   927 | Score   1,619 vs   5,981 | Sharpe  0.84 vs  1.61 | Prop $   15 vs $  220 | DD 9.0R vs 8.3R  [fail]
+  B 2016-24    Sessions  2311 | Score   3,310 vs   3,527 | Sharpe  1.28 vs  1.65 | Prop $  242 vs $  379 | DD 8.3R vs 15.0R  [fail]
+  spent 25-26  Sessions   447 | Score    -719 vs   2,294 | Sharpe -0.66 vs  0.72 | Prop $  -20 vs $  -16 | DD 11.7R vs 9.5R  [info]
+  VERDICT: FAIL
+
+=== H11 plateau cut 0.33 off 0.5  (Prop rescale x1.47 to v3's era-B max DD)
+  A 2003-15    Sessions   927 | Score   4,114 vs   5,981 | Sharpe   1.5 vs  1.61 | Prop $  136 vs $  220 | DD 7.8R vs 8.3R  [fail]
+  B 2016-24    Sessions  2311 | Score   3,936 vs   3,527 | Sharpe  1.64 vs  1.65 | Prop $  394 vs $  379 | DD 10.2R vs 15.0R  [fail]
+  spent 25-26  Sessions   447 | Score     707 vs   2,294 | Sharpe  0.36 vs  0.72 | Prop $  -18 vs $  -16 | DD 9.5R vs 9.5R  [info]
+  VERDICT: FAIL
+
+DSR H11 (N=15): {'sharpe_annual': np.float64(1.52), 'sr0_annual': np.float64(0.22), 'dsr': 1.0}
+
+==== H11 VERDICT: FAIL

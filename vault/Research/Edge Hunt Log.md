@@ -193,3 +193,16 @@ Run order: H7, H8, then H1–H6, then H9, H10. If none pass, Ensemble v3 stays t
 - **Why it's new:** Round 1 used the trailing-year *rank* on ORB v1 (and skipped days). A rank can't express "gamma was high all year", which is the 2025-26 decay story.
 - **Pass:** beat v3 on Score, Sharpe and Prop Score (Prop rescaled to v3's era-B max DD) in era A (2012-05 → 2015, where the gate is defined) **and** B 2016-24. 2025-26 is information only.
 - **Info only:** plateau (cut 1/4 and 1/2; off-size 0 and 0.5), v3 R per year and per GEX regime.
+
+### H11 verdict (run 2026-09-30, `research/gamma_gate.py`, output `results/h11_gamma_gate.txt`): **FAIL** ❌
+| Era | H11 Score | v3 Score | H11 Sharpe | v3 Sharpe | H11 Prop | v3 Prop |
+|---|---|---|---|---|---|---|
+| A 2012-05 → 2015 | 3,089 | 5,981 | 1.27 | 1.61 | $51 | $220 |
+| B 2016-24 | 3,884 | 3,527 | 1.52 | 1.65 | $318 | $379 |
+| 2025-26 (info) | −84 | 2,294 | −0.06 | 0.72 | −$16 | −$16 |
+
+- All 4 plateau variants also fail. H11 only wins on drawdown (8.7R vs 15.0R in B), not on return per unit of risk.
+- **The decay story is refuted on our data.** v3 R per traded day: low-gamma +0.214 (n = 681) vs high-gamma +0.205 (n = 1,014), **t = 0.13**, so there is no difference. High-gamma days made +46.6R in 2024 and +26.0R in 2026. 2025 was flat in *both* regimes.
+- Consistent with Round 1: GEX describes volatility, not ORB persistence (FlashAlpha: ρ → −0.03 after VIX + IV controls).
+- Also note: v3 in 2025-26 still has Sharpe 0.72 / Score 2,294 by Score; it is the Prop Score that is ≈ −$16/mo. So "the edge is dead" is too strong. The problem is that the edge in 2025-26 is too weak for the Lucid 150K rules.
+- Budget: ADR 0007 has used 1 of 8. DSR count is now N = 15.
