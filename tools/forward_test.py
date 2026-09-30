@@ -64,3 +64,14 @@ log.to_csv(LOG, index=False)
 t = log[log.traded == True]  # noqa: E712
 print(f"Forward Test: {len(log)} Sessions | ORB v1: {len(t)} trades, total {t.r.sum():+.2f}R, "
       f"win {(t.r > 0).mean() if len(t) else 0:.0%} | Ensemble v3: total {log.ensemble_v3_r.sum():+.2f}R")
+
+# Forward arm of the Jev news test (ADR 0003 addendum): logs only, never changes a trade.
+try:
+    from tools.forward_news import update as news_update
+except ImportError:
+    sys.path.insert(0, str(ROOT / "tools"))
+    from forward_news import update as news_update
+try:
+    news_update(d)
+except Exception as e:  # news must never break the Forward Test log
+    print(f"Forward news failed: {e}")
