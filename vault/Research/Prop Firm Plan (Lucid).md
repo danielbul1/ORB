@@ -90,3 +90,17 @@ Q1 Prop Score is the objective · Q2 start with a single evaluation (budget set 
 - **Q8:** the user's TradingView plan is unknown. Only needed for the TradingView→bridge fallback (Essential+ with 2FA).
 - **Fallback:** TradingView → PickMyTrade ($50/mo, unlimited accounts) or TradersPost (~$42/mo) on the Tradovate/CQG feed; send the explicit contract (e.g. MNQZ2026), not MNQ1!.
 - **Buy the Lucid account on the CQG feed** (works for NinjaTrader, Tradovate and TradingView).
+
+## Execution route confirmed (2026-09-30): NinjaTrader 8 on a Chicago VPS, Lucid CQG / Tradovate credentials
+- NinjaScript supports unique entry names + `StopTargetHandling.PerEntryExecution` + `SetStopLoss` / `SetProfitTarget(fromEntrySignal)`, so each member has its own resting broker stop and target. The trail is custom code moving each stop; a disconnect freezes the trail, but the resting stops still protect.
+- **No NT license needed** for Tradovate-credential prop accounts. VPS about $15–80/mo.
+- **Rejected:** direct Tradovate API (closed to prop / eval accounts); PickMyTrade (`update_sl` changes all legs at once); TradersPost (no trail activation offset).
+- **Code:** `ninja/ORBEnsembleV3.cs`. Not compiled yet; needs an NT compile plus a Strategy Analyzer parity check against the Python engine.
+
+## Go-live checklist
+1. Buy **Lucid Flex 150K** on the **CQG** feed (use a discount code).
+2. Rent a **Windows VPS in Chicago**; install **NinjaTrader 8**; connect with Lucid's Tradovate / CQG credentials.
+3. Import `ninja/ORBEnsembleV3.cs` (NinjaScript Editor → compile). Fix any compile errors with Claude.
+4. **Strategy Analyzer** on MNQ 5-min, last ~6 months → export trades → Claude compares with the Python engine (parity).
+5. Run on **Sim101 / Playback** for 3–5 days, then enable on the evaluation at **RiskUsd = $80 (1 MNQ per member)**. The trader watches the first 3–5 live days (ADR 0005).
+6. Record live fills in `results/live_fills.csv` for the monthly review's fill check.
