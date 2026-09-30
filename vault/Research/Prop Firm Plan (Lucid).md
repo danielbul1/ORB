@@ -105,3 +105,32 @@ Q1 Prop Score is the objective · Q2 start with a single evaluation (budget set 
    - **Size for 2025–26, not the in-sample result:** v3's Prop Score on Flex 150K in 2025–26 was about −$16/month (Edge Hunt Log, ADR 0006 run). Keep the live test at 1 MNQ per Leg (RiskUsd ≈ 80).
 5. Run on **Sim101 / Playback** for 3–5 days, then enable on the evaluation at **RiskUsd = $80 (1 MNQ per member)**. The trader watches the first 3–5 live days (ADR 0005).
 6. Record live fills in `results/live_fills.csv` for the monthly review's fill check.
+
+## Best-setup search (2026-09-30, `research/prop_search.py`, output `results/prop_search.txt` / `.csv`)
+- **Search:** 282 setups = 4 Flex accounts (25K/50K/100K/150K) × 3 Rule Sets (ORB v1, Ensemble v3, v1 + v3) × eval size × funded size (1-6 MNQ per Leg, within Lucid's micro caps).
+- **Ranking:** by the **worse** of 2016-24 and 2025-26 net $/month per slot. Both eras use 1-year rolling windows so they're comparable. That makes these numbers lower than the 2-year-window table above.
+- **Account rules:** review sites (tradetanto, tradingfunder): targets $1.25k/$3k/$6k/$9k, max loss $1k/$2k/$3k/$4.5k, payout days $100/$150/$200/$250, caps $1k/$2k/$2.5k/$3k. The 150K rules in the code were already right.
+- **Fees:** only the 50K ($136 list) is known. The others are assumed at $100/$200/$245 list, all with a 40% code, reset = eval fee. The Flex price page is JS-only; **check at checkout.**
+
+| Account | Rule Set | Eval MNQ | Funded MNQ | $/mo 2016-24 | Losing yrs 2016-24 | $/mo 2025-26 | p10 2025-26 | Losing yrs 2025-26 |
+|---|---|---|---|---|---|---|---|---|
+| **Flex 150K** | **ORB v1** | **6** | **3** | **128** | **14%** | **244** | **+94** | **0%** |
+| Flex 150K | ORB v1 | 6 | 4 | 133 | 29% | 379 | +189 | 0% |
+| Flex 100K | ORB v1 | 6 | 3 | 101 | 33% | 289 | +58 | 0% |
+| Flex 50K | ORB v1 | 3 | 2 | 77 | 33% | 103 | +32 | 10% |
+| Flex 150K | v1 + v3 (1 MNQ each) | 3 | 2 | 278 | 23% | 44 | — | 20% |
+| Flex 150K | Ensemble v3 (best 2016-24) | 6/Leg | 3/Leg | **315** | 23% | **−39** | — | **100%** |
+| Flex 150K | Ensemble v3 (**current plan**) | 3/Leg | 2/Leg | 267 | 27% | **−27** | — | **100%** |
+
+**Findings**
+- **Ensemble v3 loses money under Lucid rules in every 2025-26 window, at every size and on every account.** It's the best 2016-24 setup, but it's broken for prop trading now. v3's extra parts (the 15/30/60 Legs, EMA-200, trail, trend gate) are exactly what stopped paying in 2025-26.
+- **ORB v1 is the only Rule Set positive in both eras.** ORB v1 was frozen *before* 2025-26 (that period was its holdout, Sharpe 1.12), so its 2025-26 result is the most honest number we have.
+- **Recommended: Flex 150K, ORB v1, 6 MNQ in the evaluation ($480/R ≈ 9R of max loss), 3 MNQ funded.**
+  - 6→4 earns more in 2025-26 but has twice as many losing years in 2016-24.
+- **Caveats:**
+  - 2025-26 is only about 21 months (roughly 10 overlapping 1-year windows, about 2 independent years).
+  - Choosing ORB v1 over v3 *using* 2025-26 is itself a selection on seen data.
+  - Fees for 25K/100K/150K are assumptions.
+- **Action:**
+  - `ninja/ORBEnsembleV3.cs` trades v3. ORB v1 is simpler: one 5-min Leg, gap + VWAP filters, 10R/EOD, no trail. It needs either its own NinjaScript port or a v3 strategy mode with only the 5-min Leg and the v2/v3 extras off.
+  - Keep v3 in the Forward Test to see whether it recovers.
