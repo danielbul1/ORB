@@ -43,11 +43,11 @@ def main():
         a, b = window(prev[day], day)
         params = dict(query=QUERY, mode="artlist", format="json", maxrecords=75, sort="hybridrel",
                       startdatetime=a, enddatetime=b)
-        for attempt in range(6):
+        for attempt in range(30):
             try:
                 r = requests.get(API, params=params, timeout=60)
                 if r.status_code == 429 or "limit requests" in r.text[:200].lower():
-                    time.sleep(20 * (attempt + 1))
+                    time.sleep(60)  # throttled: wait a full minute and try again
                     continue
                 arts = r.json().get("articles", []) if r.text.strip().startswith("{") else []
                 break
@@ -60,9 +60,9 @@ def main():
         titles = [{"title": x.get("title", ""), "domain": x.get("domain", ""), "seen": x.get("seendate", "")}
                   for x in arts]
         (OUT / f"{day}.json").write_text(json.dumps(titles), encoding="utf8")
-        if n % 50 == 0:
+        if n % 25 == 0:
             print(f"  {n}/{len(todo)} {day}: {len(titles)} headlines", flush=True)
-        time.sleep(5.5)
+        time.sleep(8)
     print("done", flush=True)
 
 

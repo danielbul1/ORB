@@ -9,3 +9,4 @@ Opening Range Breakout strategy notes.
 - [[Research/Edge Hunt Log]]
 - [[Research/Intraday Edges Research]] (non-ORB intraday edges, ranked test list)
 - [[Research/TradingView ORB Strategies Backtested]]
+- [[Research/Prop Firm Plan (Lucid)]]
