@@ -1,6 +1,0 @@
-2469 Sessions to fetch
-  0/2469 2017-02-20: 75 headlines
-2467 Sessions to fetch
-  retry 2017-02-22: HTTPSConnectionPool(host='api.gdeltproject.org', port=443): Max retries exceeded with url: /api/v2/doc/doc?query=%28nasdaq+OR+%22stock+market%22+OR+%22wall+street%22+OR+%22stock+futures%22+OR+%22federal+reserve%22+OR+tariffs+OR+inflation+OR+earnings%29+sourcelang%3Aenglish&mode=artlist&format=json&maxrecords=75&sort=hybridrel&startdatetime=20170221210000&enddatetime=20170222142500 (Caused by NameResolutionError("HTTPSConnection(host='api.gdeltproject.org', port=443): Failed to resolve 'api.gdeltproject.org' ([Errno 11001] getaddrinfo failed)"))
-  retry 2017-02-22: HTTPSConnectionPool(host='api.gdeltproject.org', port=443): Max retries exceeded with url: /api/v2/doc/doc?query=%28nasdaq+OR+%22stock+market%22+OR+%22wall+street%22+OR+%22stock+futures%22+OR+%22federal+reserve%22+OR+tariffs+OR+inflation+OR+earnings%29+sourcelang%3Aenglish&mode=artlist&format=json&maxrecords=75&sort=hybridrel&startdatetime=20170221210000&enddatetime=20170222142500 (Caused by NameResolutionError("HTTPSConnection(host='api.gdeltproject.org', port=443): Failed to resolve 'api.gdeltproject.org' ([Errno 11001] getaddrinfo failed)"))
-  0/2467 2017-02-22: 75 headlines
