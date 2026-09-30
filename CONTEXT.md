@@ -51,6 +51,18 @@ Paper trading from 2026-09-30 onward with frozen parameters. It is the final jud
 **Portfolio**:
 Several Rule Sets traded together. Each one earns its place by adding to the Portfolio's Score, not by its own Score alone.
 
+**Portfolio Member**:
+One Rule Set inside a Portfolio. A candidate is judged by what it adds to the Portfolio (its Score and Prop Score), and low correlation with the other members counts in its favour.
+_Avoid_: member (alone), which is ambiguous with Leg
+
+**Leg**:
+One of the fixed parts inside an ensemble Rule Set, such as the ORB-15 Leg of Ensemble v3 (OR lengths 5/15/30/60). Sizing is quoted per Leg ("1 MNQ per Leg").
+_Avoid_: member (older notes use it with this meaning)
+
+**Hypothesis**:
+One pre-registered idea (a Filter, Day Type or Portfolio Member), written down with its rule, parameters and pass bar before it is run. At most 10 are spent trying to beat Ensemble v3 (ADR 0006).
+_Avoid_: idea, tweak (for anything that gets backtested)
+
 **Day Type**:
 A label for a Session known before its open (for example CPI day, FOMC day, mega-cap earnings day), used to switch Rule Sets on or off.
 

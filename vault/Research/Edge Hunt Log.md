@@ -149,3 +149,24 @@ Source: [[arXiv ORB Sweep]]. Scored on the 23-year base, Sharpe A 2003–15 / B 
 - **After the fix:** best is 1.14 / 1.51 / 0.72 vs **Ensemble v3 1.14 / 1.65 / 0.72**. Other settings range 0.44–1.19 / 1.30–1.74 / 0.02–0.69. The shuffled-label control gives −0.2 / −0.2 / −1.3, so no leak remains.
 - **Verdict ❌ not adopted.** The learned model rediscovers the hand-built rules (opening move + gap + trend strength) and doesn't beat them.
 - **Meaning:** v3 already captures most of what price-derived features know. Further gains need **new information** (news via Jev, payout-aware design, live execution data), not more models on the same bars.
+
+## Beat Ensemble v3: 10 pre-registered Hypotheses (ADR 0006, registered 2026-09-30, none run yet)
+**Common rules.** Base = the 23-year research base, Walk-Forward in both eras (A = NAS100 2003–15, B = NQ 2016–24); 2025–26 is reported but is spent. Costs, ATR and trail are exactly as in v3. Free data only (Yahoo daily ^VIX; BLS release dates). Every variant run counts toward the deflated Sharpe (N = all variants across H1–H10). Parameters below are fixed; a "plateau check" (±50% on the one number) is reported but cannot rescue a fail.
+- **Filter / Day Type pass bar:** v3 + Filter beats v3 on Score **and** Prop Score in **both** eras, with Sharpe no lower in either.
+- **Portfolio Member pass bar:** daily-R correlation with v3 ≤ 0.3; Score > 0 on its own in both eras; v3 + Member raises the Portfolio Score **and** Prop Score in both eras.
+- A pass joins the Forward Test beside v3. It is not traded live until the Forward Test agrees.
+
+| # | Kind | Hypothesis (fixed rule) | Result |
+|---|---|---|---|
+| H1 | Filter | **VIX calm skip:** no trade when VIX prior close < 20th percentile of its last 252 closes | – |
+| H2 | Filter | **VIX shock:** trade only when \|VIX open / prior close − 1\| ≥ 3% (either direction). Only years where the VIX open is a real print (open ≠ prior close on > 90% of days) are used | – |
+| H3 | Day Type | **CPI / NFP days:** on 08:30 CPI or NFP release days, trade only the 30- and 60-minute Legs | – |
+| H4 | Filter (size) | **Overnight compression:** Globex range (18:00–09:29) < 0.5 × ATR14 → full size, otherwise half size | – |
+| H5 | Filter | **NQ leads ES:** take a Leg only if NQ's OR move ÷ its ATR14 exceeds ES's, with the same sign (era B only; A has no ES; the pass bar applies to B + 2025–26) | – |
+| H6 | Filter | **Compression yesterday:** trade only after an NR7 or inside day | – |
+| H7 | Member | **Against-gap:** on days where the OR candle closes against the gap (days v3 skips), trade in the OR-candle direction with v3's Leg rules | – |
+| H8 | Member | **Low-τ VWAP reversion:** on days v3's τ gate blocks (τ < 1), after 10:00 fade the first touch of the 30-min OR high/low; target session VWAP, stop 0.25 × ATR14 beyond the extreme, flat 15:59, one trade per day | – |
+| H9 | Member | **Globex extreme breakout:** after 09:35, first break of the overnight high/low, entry in the break direction; stop 0.10 × ATR14, v3 trail, flat 15:59, one trade per day | – |
+| H10 | Member | **Prior-day extreme breakout:** as H9 with the prior Session's high/low as the level | – |
+
+Run order: H7, H8, then H1–H6, then H9, H10. If none pass, Ensemble v3 stays the best Rule Set.
