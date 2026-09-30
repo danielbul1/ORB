@@ -83,3 +83,10 @@ Q1 Prop Score is the objective · Q2 start with a single evaluation (budget set 
 - **The trader watches the first 3–5 live days** (16:35–17:30 local), with a manual flatten ready.
 - **Monthly review:** `tools/monthly_review.py` (Windows task "ORB Monthly Review", every 4 weeks, Saturdays) writes `results/monthly_review.txt`.
 - **Research continues:** Jev news test (GDELT pull, slow) and monthly re-validation; SOX / NVDA cross-market check when convenient.
+
+## Execution route (decided 2026-09-30)
+- **Q6:** a VPS is acceptable. Preferred route is **NinjaTrader 8 on a VPS (CQG feed)**, running Ensemble v3 as a native NinjaScript strategy with every entry's stop and target held at the broker. Pending confirmation that NinjaScript handles 4 per-entry brackets plus activation trailing.
+- **Q7:** if exact execution isn't possible, a simplified "execution version" (brackets at entry, broker-native trailing) is allowed **only** after its own 23-year both-era backtest scores close to Ensemble v3.
+- **Q8:** the user's TradingView plan is unknown. Only needed for the TradingView→bridge fallback (Essential+ with 2FA).
+- **Fallback:** TradingView → PickMyTrade ($50/mo, unlimited accounts) or TradersPost (~$42/mo) on the Tradovate/CQG feed; send the explicit contract (e.g. MNQZ2026), not MNQ1!.
+- **Buy the Lucid account on the CQG feed** (works for NinjaTrader, Tradovate and TradingView).
