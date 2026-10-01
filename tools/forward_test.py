@@ -1,6 +1,10 @@
 """Forward Test recorder (ADR 0001): run the frozen ORB v1 on the latest NQ bars and log every Session
 from 2026-09-30 on to results/forward_log.csv. Idempotent; run it any time after the close.
 
+The log is append-only: a Session is written once, the first time it is complete and past the warm-up
+(ATR14 and the 20-day sigma5 both defined), and is never rewritten. Costs and roll adjustment match the
+research base (orb.long.COST, back_adjust), so the log is comparable with Score and Prop Score.
+
 Runs with the Model venv (it has the `lse-data` client):
   C:/Users/user/Model/.venv/Scripts/python tools/forward_test.py
 """
@@ -18,31 +22,37 @@ from dotenv import load_dotenv  # noqa: E402
 from lse import LSE  # noqa: E402
 
 from engine.data_lse import download  # noqa: E402
-from orb.backtest import run  # noqa: E402
+from orb.backtest import daily, run  # noqa: E402
 from orb.data import build  # noqa: E402
 from orb.families import ENSEMBLE_MEMBERS, ENSEMBLE_V3, ORB_V1  # noqa: E402
+from orb.long import COST  # noqa: E402
 
 START = np.datetime64("2026-09-30")
 LOG = ROOT / "results" / "forward_log.csv"
 MNQ_USD = 2.0
+LOOKBACK_DAYS = 90  # ~62 Sessions: 20 of warm-up, the rest can be back-filled if runs were missed
 
 load_dotenv(r"C:\Users\user\Model\.env")
 today = pd.Timestamp.now(tz="America/New_York").normalize()
 with tempfile.TemporaryDirectory() as tmp:
     csv = Path(tmp) / "nq_recent.csv"
     try:
-        download(LSE(), "NQ.F", "1m", f"{today - pd.Timedelta(days=45):%Y-%m-%d}", f"{today:%Y-%m-%d}", out=csv)
+        download(LSE(), "NQ.F", "1m", f"{today - pd.Timedelta(days=LOOKBACK_DAYS):%Y-%m-%d}", f"{today:%Y-%m-%d}",
+                 out=csv)
     except ValueError:
         pass  # Model's downloader prints the path relative to Model/ after writing; the file is already saved
-    d = build(csv)
+    d = build(csv, adjust=True)
 
-res = run(d, **ORB_V1)
+res = run(d, **ORB_V1, **COST)
 # Ensemble v3 (orb.families.ENSEMBLE_V3 on 5/15/30/60-min ranges, 1/4 risk each) is forward-tested alongside.
-ens = {om: run(d, **{**ENSEMBLE_V3, "or_min": om}) for om in ENSEMBLE_MEMBERS}
+ens = {om: run(d, **{**ENSEMBLE_V3, "or_min": om, **COST}) for om in ENSEMBLE_MEMBERS}
+# A Session inside the warm-up has no ATR14 / sigma5, so the engine reports "no trade" for it. That is
+# missing data, not a result, and must never reach the log.
+warm = np.isfinite(d.atr14) & np.isfinite(daily(d)["sig5"][ENSEMBLE_V3["tau_win"]])
 rows = []
 for i, day in enumerate(d.dates):
-    if day < START or d.last[i] < 389 and day == np.datetime64(today.date()):
-        continue  # before the Forward Test, or today's Session is still open
+    if day < START or not warm[i] or d.last[i] < 389 and day == np.datetime64(today.date()):
+        continue  # before the Forward Test, in the warm-up, or today's Session is still open
     traded = bool(res["ok"][i])
     rows.append(dict(
         session=str(day), traded=traded,
@@ -58,7 +68,7 @@ for i, day in enumerate(d.dates):
 new = pd.DataFrame(rows, columns=["session", "traded", "direction", "entry", "stop", "exit", "reason", "r",
                                    "risk_usd_1mnq", "ensemble_v3_r"])
 old = pd.read_csv(LOG) if LOG.exists() else pd.DataFrame(columns=new.columns)
-log = pd.concat([old[~old.session.isin(new.session)], new]).sort_values("session")
+log = pd.concat([old, new[~new.session.isin(old.session)]]).sort_values("session")  # append-only
 LOG.parent.mkdir(exist_ok=True)
 log.to_csv(LOG, index=False)
 t = log[log.traded == True]  # noqa: E712
