@@ -16,10 +16,13 @@ ERA_A = (2003, 2015)
 ERA_B = (2016, 2024)
 
 
-def load():
-    cache = ROOT / "data" / "long_adj_rth.npz"
+def load(pre=False):
+    """pre=True: a cache that also holds the 09:15..09:29 bars (NaN in the index era), rebuilt from data/long_1m.csv."""
+    cache = ROOT / "data" / ("long_adj_rth_pre.npz" if pre else "long_adj_rth.npz")
     if cache.exists():
         return build(None, cache)
+    if pre and (ROOT / "data" / "long_1m.csv").exists():
+        return build(ROOT / "data" / "long_1m.csv", cache)
     nas = pd.read_csv(ROOT / "data" / "nas100_2003_2016_1m.csv")
     nq = back_adjust(pd.read_csv(r"C:\Users\user\Model\data\nq_1m_lse.csv"))
     seam = pd.Timestamp("2016-06-01", tz="UTC").timestamp()

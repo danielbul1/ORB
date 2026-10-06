@@ -18,6 +18,7 @@ DEFAULTS = dict(
     entry="stop",       # stop: touch of OR +1 tick | close: 1m close beyond OR, fill next open | candle: OR candle direction at end of OR
     side="both",        # both | long | short
     stop="or",          # or: opposite side | mid: OR midpoint | atr: stop_x * ATR14 from entry
+                        # frac: stop_x * OR width beyond the broken edge | bar: breakout candle's far end | pts: stop_x points
     stop_x=0.1,
     target_r=None,      # take profit in R, None = hold to time exit
     cutoff=120,         # last minute (from 09:30) a new entry may fill
@@ -48,6 +49,16 @@ DEFAULTS = dict(
     htf_side=False,     # prior day close on the trade side of its 20-day SMA
     rsi_block=0,        # skip longs if RSI(70 x 1m ~ 14 x 5m) > rsi_block, shorts if < 100 - rsi_block
     pdhl_block=0.0,     # skip if prior day high (longs) / low (shorts) lies within x ATR ahead of entry
+    # --- Alt Trading track (ADR 0008) ---
+    or_start=0,         # first OR minute from 09:30; negative reaches into the 09:15..09:29 pre-open bars
+    entry_tf=1,         # close / retest: the break must be a close of an entry_tf-minute candle (aligned to 09:30)
+    prev_inside=False,  # close / retest: the previous entry_tf candle must have closed inside the OR
+    retest_win=None,    # retest: minutes after the breakout candle closes that the limit order stays valid
+    bvol_min=0.0,       # breakout candle volume / mean of the same candle over the prior 20 Sessions below: skip
+    each_side=False,    # close / retest with side long|short: ignore the other side's break (1 long + 1 short per Session
+                        # = sum of a long-only and a short-only run)
+    target_pts=None,    # target this many points from entry
+    target_min_pts=0.0, # target at least this many points from entry
     cost=1.0,           # points round trip
     cost_bp=None,       # if set, round-trip cost in basis points of the entry price instead of `cost`
     cost_floor=0.0,     # with cost_bp: never charge less than this many points
@@ -105,10 +116,26 @@ def run(d, **p):
     D, B = d.o.shape
     rows = np.arange(D)
     idx = np.arange(B)[None, :]
-    k = p["or_min"]
-    orh = d.h[:, :k].max(1)
-    orl = d.l[:, :k].min(1)
+    s0 = p["or_start"]
+    k = s0 + p["or_min"]  # first minute after the OR (exclusive end); entries start at max(k, 0)
+    if s0 < 0:
+        if d.pre_h is None:
+            raise ValueError("or_start < 0 needs pre-open bars: rebuild the cache from the 1m CSV")
+        P = d.pre_h.shape[1]
+        orh = np.fmax(np.nanmax(d.pre_h[:, P + s0:P + min(k, 0)], 1), d.h[:, :max(k, 0)].max(1, initial=-np.inf))
+        orl = np.fmin(np.nanmin(d.pre_l[:, P + s0:P + min(k, 0)], 1), d.l[:, :max(k, 0)].min(1, initial=np.inf))
+        orh = np.where(np.isfinite(orh), orh, np.nan)  # no pre-open data (index era): no OR, no trade
+        orl = np.where(np.isfinite(orl), orl, np.nan)
+        k = max(k, 0)
+    else:
+        orh = d.h[:, s0:k].max(1)
+        orl = d.l[:, s0:k].min(1)
     width = orh - orl
+    tf = p["entry_tf"]
+    brk = (idx + 1) % tf == 0 if tf > 1 else np.ones_like(idx, bool)  # bars that close an entry_tf candle
+    if p["prev_inside"]:
+        pc = np.concatenate([np.full((D, tf), np.nan), d.c[:, :-tf]], axis=1)  # previous candle's close
+        brk = brk & (pc <= orh[:, None]) & (pc >= orl[:, None])
     atr = d.atr14
     cutoff = np.minimum(p["cutoff"], d.last - 1)[:, None]
     window = (idx >= k) & (idx <= cutoff)
@@ -125,19 +152,25 @@ def run(d, **p):
         px_s = np.minimum(dn, d.o[rows, ec])
         entry = np.where(direction > 0, px_l, px_s)
     elif p["entry"] == "close":
-        jl = _first(window & (d.c > orh[:, None]))
-        js = _first(window & (d.c < orl[:, None]))
+        jl = _first(window & brk & (d.c > orh[:, None]))
+        js = _first(window & brk & (d.c < orl[:, None]))
+        if p["each_side"]:
+            jl, js = (jl, np.full(D, BIG)) if p["side"] == "long" else (np.full(D, BIG), js)
         direction = np.where(jl < js, 1, np.where(js < jl, -1, 0))
         e = np.minimum(jl, js) + 1
         e = np.where(e <= cutoff[:, 0] + 1, e, BIG)
         entry = d.o[rows, np.minimum(e, B - 1)]
     elif p["entry"] == "retest":
-        jl = _first(window & (d.c > orh[:, None]))
-        js = _first(window & (d.c < orl[:, None]))
+        jl = _first(window & brk & (d.c > orh[:, None]))
+        js = _first(window & brk & (d.c < orl[:, None]))
+        if p["each_side"]:
+            jl, js = (jl, np.full(D, BIG)) if p["side"] == "long" else (np.full(D, BIG), js)
         direction = np.where(jl < js, 1, np.where(js < jl, -1, 0))
         jb = np.minimum(jl, js)
         edge = np.where(direction > 0, orh, orl)
         back = window & (idx > jb[:, None]) & np.where(direction[:, None] > 0, d.l <= edge[:, None], d.h >= edge[:, None])
+        if p["retest_win"] is not None:
+            back &= idx <= (jb + p["retest_win"])[:, None]
         e = _first(back)
         ec = np.minimum(e, B - 1)
         o_e = d.o[rows, ec]
@@ -209,6 +242,15 @@ def run(d, **p):
     if p["dows"] is not None:
         ok &= np.isin(d.dow, list(p["dows"]))
 
+    if p["bvol_min"] > 0:
+        if p["entry"] not in ("close", "retest"):
+            raise ValueError("bvol_min needs a close / retest entry")
+        cv = np.concatenate([np.zeros((D, 1)), np.cumsum(d.v, 1)], axis=1)
+        candle_v = cv[:, 1:] - cv[:, np.maximum(np.arange(B) + 1 - tf, 0)]  # volume of the candle ending at each bar
+        mean = pd.DataFrame(candle_v).rolling(20).mean().shift(1).values  # same bar, prior 20 Sessions
+        jbk = np.minimum(np.minimum(jl, js), B - 1)
+        ok &= candle_v[rows, jbk] >= p["bvol_min"] * mean[rows, jbk]
+
     if p["dir_override"] is not None:
         direction = np.where(ok, np.asarray(p["dir_override"]), direction)
 
@@ -221,6 +263,15 @@ def run(d, **p):
         stop = entry - direction * p["stop_x"] * atr
     elif p["stop"] == "pct":  # fixed-point stops, expressed as a fraction of price
         stop = entry - direction * p["stop_x"] * entry
+    elif p["stop"] == "frac":  # stop_x = 1 is the "or" stop, 0.5 the midpoint
+        stop = np.where(direction > 0, orh - p["stop_x"] * width - TICK, orl + p["stop_x"] * width + TICK)
+    elif p["stop"] == "bar":  # far end of the entry_tf candle that broke out
+        jbk = np.minimum(np.minimum(jl, js), B - 1)
+        lo = pd.DataFrame(d.l).T.rolling(tf, min_periods=1).min().T.values[rows, jbk]
+        hi = pd.DataFrame(d.h).T.rolling(tf, min_periods=1).max().T.values[rows, jbk]
+        stop = np.where(direction > 0, lo, hi)
+    elif p["stop"] == "pts":
+        stop = entry - direction * p["stop_x"]
     else:
         raise ValueError(p["stop"])
     risk = (entry - stop) * direction
@@ -233,6 +284,10 @@ def run(d, **p):
         tgt = entry + direction * p["target_or"] * width
     if p["target_pct"]:
         tgt = entry + direction * p["target_pct"] * entry
+    if p["target_pts"]:
+        tgt = entry + direction * p["target_pts"]
+    if p["target_min_pts"] and tgt is not None:
+        tgt = entry + direction * np.maximum((tgt - entry) * direction, p["target_min_pts"])
 
     ec = np.where(ok, e, 0)[:, None]
     after = idx >= ec

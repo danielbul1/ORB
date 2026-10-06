@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 
 RTH_BARS = 390  # 09:30..15:59
+PRE_BARS = 15    # 09:15..09:29, kept beside the session for pre-open ranges (NaN where the source has none)
 
 
 @dataclass
@@ -25,9 +26,12 @@ class Days:
     prev_close: np.ndarray  # prior session 15:59 close
     atr14: np.ndarray       # 14-day ATR of RTH daily bars, prior days only
     dow: np.ndarray         # 0=Mon
+    pre_h: np.ndarray = None  # (D, 15) 09:15..09:29 highs; None for caches built before pre-open bars were kept
+    pre_l: np.ndarray = None
 
     def slice(self, mask):
-        return Days(**{k: getattr(self, k)[mask] for k in self.__dataclass_fields__})
+        return Days(**{k: (None if getattr(self, k) is None else getattr(self, k)[mask])
+                       for k in self.__dataclass_fields__})
 
 
 def back_adjust(df):
@@ -71,8 +75,12 @@ def build(csv_path, cache_path=None, adjust=False):
         df = back_adjust(df)
     ts =pd.to_datetime(df["time"], unit="s", utc=True).dt.tz_convert("America/New_York")
     minute = ts.dt.hour * 60 + ts.dt.minute - (9 * 60 + 30)
-    keep = (minute >= 0) & (minute < RTH_BARS) & (ts.dt.dayofweek < 5)
+    keep = (minute >= -PRE_BARS) & (minute < RTH_BARS) & (ts.dt.dayofweek < 5)
     df, ts, minute = df[keep], ts[keep], minute[keep]
+    pre_rows = (minute < 0).values
+    pre_df, pre_min = df[pre_rows], minute[pre_rows].values + PRE_BARS
+    pre_day = ts[pre_rows].dt.tz_localize(None).dt.normalize()
+    df, ts, minute = df[~pre_rows], ts[~pre_rows], minute[~pre_rows]
     day = ts.dt.tz_localize(None).dt.normalize()
 
     dates = np.array(sorted(day.unique()), dtype="datetime64[D]")
@@ -85,11 +93,20 @@ def build(csv_path, cache_path=None, adjust=False):
         m[row, col] = df[{"o": "open", "h": "high", "l": "low", "c": "close", "v": "volume"}[k]].values
         mats[k] = m
 
+    pre = {}
+    prow = np.searchsorted(dates, pre_day.values.astype("datetime64[D]"))
+    hit = (prow < D) & (dates[np.minimum(prow, D - 1)] == pre_day.values.astype("datetime64[D]"))
+    for k in "hl":
+        m = np.full((D, PRE_BARS), np.nan)
+        m[prow[hit], pre_min[hit]] = pre_df[{"h": "high", "l": "low"}[k]].values[hit]
+        pre[k] = m
+
     # Drop thin days (holidays / data gaps): need the open bar and most of the session.
     count = np.isfinite(mats["c"]).sum(1)
     good = np.isfinite(mats["o"][:, 0]) & (count >= 200)
     dates = dates[good]
     mats = {k: m[good] for k, m in mats.items()}
+    pre = {k: m[good] for k, m in pre.items()}
     # Last real bar of the session (half days close at 13:00).
     last = RTH_BARS - 1 - np.argmax(np.isfinite(mats["c"])[:, ::-1], axis=1)
     # Forward-fill missing minutes with a flat bar at the prior close.
@@ -109,7 +126,7 @@ def build(csv_path, cache_path=None, adjust=False):
 
     out = Days(dates=dates, o=mats["o"], h=mats["h"], l=mats["l"], c=mats["c"], v=mats["v"],
                last=last, prev_close=prev_close, atr14=atr,
-               dow=((dates.astype("datetime64[D]").view("int64") - 4) % 7))
+               dow=((dates.astype("datetime64[D]").view("int64") - 4) % 7), pre_h=pre["h"], pre_l=pre["l"])
     if cache:
         cache.parent.mkdir(parents=True, exist_ok=True)
         np.savez_compressed(cache, **{k: getattr(out, k) for k in out.__dataclass_fields__})
