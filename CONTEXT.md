@@ -35,6 +35,10 @@ TradingView's strategy and the Python engine take the same trades on the same da
 **Community Script**:
 A published TradingView script by another author, studied for ideas and never copied as a whole.
 
+**Alt Baseline**:
+alttrading.ai's published Rule Sets (ATX ORB Sniper V1–V4, Mike's ORB Signal Pro, and the rules stated in their prose), reproduced as they run and measured for comparison only. Never traded; spends no Hypothesis.
+_Avoid_: Alt strategy, B1 (their unpublished system, which we cannot reproduce)
+
 **Score**:
 The single number that ranks Rule Sets: profit per year when sized so the worst historical drawdown just fits the Account Profile's drawdown cap. Every result also reports its longest losing streak.
 _Avoid_: best, performance (unqualified)
@@ -60,7 +64,7 @@ One of the fixed parts inside an ensemble Rule Set, such as the ORB-15 Leg of En
 _Avoid_: member (older notes use it with this meaning)
 
 **Hypothesis**:
-One pre-registered idea (a Filter, Day Type or Portfolio Member), written down with its rule, parameters and pass bar before it is run. At most 10 are spent trying to beat Ensemble v3 (ADR 0006).
+One pre-registered idea (a Filter, Day Type or Portfolio Member), written down with its rule, parameters and pass bar before it is run. Each budget is fixed by an ADR: 10 to beat Ensemble v3 (ADR 0006, spent), 5 for the Alt Trading track (ADR 0008).
 _Avoid_: idea, tweak (for anything that gets backtested)
 
 **Day Type**:
