@@ -216,9 +216,13 @@ Source: alttrading.ai's free Pine scripts (ATX ORB Sniper V1–V4, Mike's ORB Si
 
 Each Hypothesis changes one thing on the chassis. Grids have ≤ 3 values, chosen by Walk-Forward; every value counts toward the DSR.
 - **H1 Acceptance / retest:** after the 5m close beyond the OR, a limit order at the broken edge, valid {15, 30, 60} min. No touch means no trade. R is recomputed from the retest fill.
-- **H2 Midpoint:** _to be registered before any run._
+- **H2 Midpoint stop:** the stop moves to {50%, 75%, 40%} of the OR width measured from the broken edge (50% = OR midpoint). Target stays 2R of the new, smaller R.
 - **H3 Pre-open range:** the OR is {09:15–09:29 | 09:15–09:44 | 09:29–09:40}. Entries from 09:30 (or the range end, if later). Needs the engine to load 09:15–09:29.
 - **H4 Initial Balance + volume:** OR 09:30–10:29. Enter only if the breakout 5m bar's volume is ≥ {1.0, 1.5, 2.0} × the mean volume of the same bar over the prior 20 Sessions. Entries until 14:00.
 - **H5 Narrow OR:** trade only when the OR width < {0.15, 0.25, 0.35} × ATR14 (RTH, prior days).
 
-**Pass (all of these):** Walk-Forward 2016–24 better than the stronger of Ensemble v3 and ORB v1 on Flex 150K. Prop Score above ORB v1 on Flex 150K. Positive on ES. Then ≥ 60 Sessions of positive Forward Test. Or pass as a Portfolio Member by raising the Portfolio's Score and Prop Score.
+**Pass (all of these):** Walk-Forward 2016–24 better than the stronger of Ensemble v3 and ORB v1 on Flex 150K. Prop Score above ORB v1 on Flex 150K. ES Sharpe > 0 over 2016–24 with the parameters Walk-Forward chose on NQ (no ES re-tuning). Then ≥ 60 Sessions of positive Forward Test. Or pass as a Portfolio Member by raising the Portfolio's Score and Prop Score.
+- **Prop Score comparison:** each series is rescaled to ORB v1 on Flex 150K's era-B max drawdown, then priced under Lucid Flex 150K rules (as in ADR 0007).
+- **More than one pass:** the best by Prop Score wins. A combination of the passes is untested, so it may only run beside the winner in the Forward Test and cannot replace it before 60 Sessions.
+
+All 5 Hypotheses registered 2026-10-06, before any Alt Baseline number was seen.
