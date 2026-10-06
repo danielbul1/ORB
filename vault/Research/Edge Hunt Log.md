@@ -206,3 +206,19 @@ Run order: H7, H8, then H1–H6, then H9, H10. If none pass, Ensemble v3 stays t
 - Consistent with Round 1: GEX describes volatility, not ORB persistence (FlashAlpha: ρ → −0.03 after VIX + IV controls).
 - Also note: v3 in 2025-26 still has Sharpe 0.72 / Score 2,294 by Score; it is the Prop Score that is ≈ −$16/mo. So "the edge is dead" is too strong. The problem is that the edge in 2025-26 is too weak for the Lucid 150K rules.
 - Budget: ADR 0007 has used 1 of 8. DSR count is now N = 15.
+
+## Alt Trading track: 5 pre-registered Hypotheses (ADR 0008, registered 2026-10-06, nothing run yet)
+Source: alttrading.ai's free Pine scripts (ATX ORB Sniper V1–V4, Mike's ORB Signal Pro, read from their site bundle) and their education/Substack prose. They publish no statistics. Their B1 system is unpublished.
+
+**Alt Baseline (information only, spends nothing):** Sniper V1–V4 as coded (inclusive range end, close beyond the OR on the 5m (V2: 15m) chart with the previous close inside, stop at the breakout candle, target = stop × {1.5, 0.3, 0.3, 1.5} with a 10 pt minimum, 1 long + 1 short per Session, entries until 12:00 and flat at 12:00), Mike's Signal Pro (09:30–09:45, chart-close entry, fixed 51 pt stop and target), and the prose skeleton in `research/alt_skeleton.py`.
+
+**Breakout chassis (fixed, no grid):** OR 09:30–09:44. Entry at the next open after a 5m close beyond the OR. Stop at the other side of the OR. Target 2R. First break only (one trade per Session). No entries after 12:00, flat at 15:59. No Filters. Research-base costs.
+
+Each Hypothesis changes one thing on the chassis. Grids have ≤ 3 values, chosen by Walk-Forward; every value counts toward the DSR.
+- **H1 Acceptance / retest:** after the 5m close beyond the OR, a limit order at the broken edge, valid {15, 30, 60} min. No touch means no trade. R is recomputed from the retest fill.
+- **H2 Midpoint:** _to be registered before any run._
+- **H3 Pre-open range:** the OR is {09:15–09:29 | 09:15–09:44 | 09:29–09:40}. Entries from 09:30 (or the range end, if later). Needs the engine to load 09:15–09:29.
+- **H4 Initial Balance + volume:** OR 09:30–10:29. Enter only if the breakout 5m bar's volume is ≥ {1.0, 1.5, 2.0} × the mean volume of the same bar over the prior 20 Sessions. Entries until 14:00.
+- **H5 Narrow OR:** trade only when the OR width < {0.15, 0.25, 0.35} × ATR14 (RTH, prior days).
+
+**Pass (all of these):** Walk-Forward 2016–24 better than the stronger of Ensemble v3 and ORB v1 on Flex 150K. Prop Score above ORB v1 on Flex 150K. Positive on ES. Then ≥ 60 Sessions of positive Forward Test. Or pass as a Portfolio Member by raising the Portfolio's Score and Prop Score.
