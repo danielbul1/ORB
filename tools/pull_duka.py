@@ -26,7 +26,7 @@ def valid(f):
 def fetch(day, raw):
     """Sequential and polite: the feed answers 429 to bursts, so back off and retry."""
     f = raw / f"{day.isoformat()}.bi5"
-    wait = 2.0
+    wait = 60.0
     while not valid(f):
         try:
             with urllib.request.urlopen(URL.format(y=day.year, m=day.month - 1, d=day.day), timeout=60) as r:
@@ -37,7 +37,7 @@ def fetch(day, raw):
                 f.write_bytes(b"")
             else:
                 time.sleep(wait)
-                wait = min(wait * 2, 60)
+                wait = min(wait * 2, 900)  # a burst earns a long block; don't keep poking it
         except Exception as e:
             print("retry", day, e)
             time.sleep(wait)

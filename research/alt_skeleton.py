@@ -6,7 +6,8 @@ The skeleton is rebuilt from public descriptions only (their code is invite-only
   B1: same, but the break must be "accepted": enter on the retest of the broken edge.
 Limitation: the engine takes the first break only, so Signal Pro's second (opposite) trade of a Session is missing.
 
-Data: free Dukascopy NAS100 CFD 1m (tools/pull_duka.py), 2012-2026, so era A is 2012-15 only. Costs are the
+Data: the 23-year research base (orb.long, eras A 2003-15 / B 2016-24) when its cache data/long_adj_rth.npz exists;
+otherwise free Dukascopy NAS100 CFD 1m (tools/pull_duka.py, from 2012, so era A is 2012-15 only). Costs are the
 research base's (0.83 bp, floor 0.5 pt). Prop Score: each series is rescaled to v3's era-B max drawdown (as in
 ADR 0007), then priced at v3's $960 / $640 per R on Flex 150K.
 Usage: python research/alt_skeleton.py
@@ -51,10 +52,14 @@ def one(d, p):
 
 
 def main():
-    d = build(ROOT / "data" / "nas100_1m_duka.csv", ROOT / "data" / "nas100_duka_rth.npz")
-    yrs = d.dates.astype("datetime64[Y]").astype(int) + 1970
-    E = {"A 2012-15": (yrs >= 2012) & (yrs <= 2015), "B 2016-24": (yrs >= 2016) & (yrs <= 2024),
-         "spent 25-26": yrs >= 2025}
+    if (ROOT / "data" / "long_adj_rth.npz").exists():
+        d = L.load()
+        E = L.eras(d)
+    else:
+        d = build(ROOT / "data" / "nas100_1m_duka.csv", ROOT / "data" / "nas100_duka_rth.npz")
+        yrs = d.dates.astype("datetime64[Y]").astype(int) + 1970
+        E = {"A 2012-15": (yrs >= 2012) & (yrs <= 2015), "B 2016-24": (yrs >= 2016) & (yrs <= 2024),
+             "spent 25-26": yrs >= 2025}
     print(f"Sessions {d.dates[0]} .. {d.dates[-1]} ({len(d.dates)})")
     base = v3(d)
     dd_b = stats(base[E["B 2016-24"]])["maxdd"]
