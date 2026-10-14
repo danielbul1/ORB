@@ -247,3 +247,25 @@ Source: QuantFlowLabs ORB Suite's "controlled second trade" ([[QuantFlowLabs ORB
 - **Trap worth naming:** v1 + re-entry has a higher Prop Score in 2025-26 ($565 vs $364) but a lower Sharpe and Score in B (1.08 vs 1.47). Adopting it because of 2025-26 would be selection on a spent period.
 - **Reading:** a stopped v1 trade is information. The day's first move failed, and chasing the same direction again doesn't pay on NQ.
 - Budget: ADR 0007 has used 2 of 8 (H11, H12). DSR count is now N = 20.
+
+## H13 and H14 (ADR 0007 budget, registered 2026-10-14, before the run)
+Source: public descriptions of closed-source NQ products, collected 2026-10-14:
+- H13: "NQ IB Quadrant & Probability Framework" (invite-only), plus the independent "IB Statistical Mapping" study.
+- H14: the reverse-after-first-stop toggle in "NQ ORB" (blinkzssss), plus edgeful's NQ double-break rate of about 40%.
+
+Only the described ideas are used, never code. Both are Portfolio Members under the ADR 0006 Member pass bar: in era A and era B, corr with v3 ≤ 0.3, the Member alone has Score > 0, and v3 + Member beats v3 on Score and Prop Score. 2025-26 is information only. Costs are as everywhere, and a trade is skipped if its stop is under 4× the round-trip cost (`level_trade`). Plateau checks are information only.
+
+**H13: IB quadrant continuation**
+- Setup: IB = bars 09:30–10:29, with high IBH, low IBL and range IBR.
+  - **Long** if the 10:29 close ≥ IBL + 0.75·IBR **and** the IB low printed before the IB high.
+  - **Short** if the 10:29 close ≤ IBL + 0.25·IBR **and** the IB high printed first.
+- Entry: limit at that level (IBL + 0.75·IBR for longs, IBL + 0.25·IBR for shorts), on its first touch from 10:30 to 12:00. The fill is at the level, or at the bar's open if that open is better.
+- Stop: IB midpoint.
+- Targets: half the position at IBH + 0.5·IBR, half at IBH + 1.0·IBR (mirrored for shorts). No trail; flat at 15:59.
+- Plateau: zone 0.70 / 0.80; entry window to 11:00 / 13:00.
+
+**H14: stop-and-reverse after an ORB v1 stop-out** (H12's opposite)
+- Trigger: on a Session where frozen ORB v1 exited by its stop on bar x, with x + 1 ≤ bar 120 (11:30).
+- Entry: the *opposite* direction at the open of bar x + 1.
+- Exits: ORB v1's own: stop 0.10 × ATR14, target 10R, no trail, flat 15:59. One per Session.
+- Plateau: cutoff 60 / 180; stop 0.05 / 0.15 ATR.
