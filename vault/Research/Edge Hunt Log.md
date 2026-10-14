@@ -279,3 +279,17 @@ Only the described ideas are used, never code. Both are Portfolio Members under 
 - **H13** is the closest miss so far. It is positive on its own in B (Sharpe 0.51, 869 trades) and in 2025-26, uncorrelated with v3, and the zone-0.80 plateau has B Sharpe 0.71. But it is zero in era A, and adding it at full size dilutes v3 on Score and Prop. The vendor's "~89% breaks first" is real as a frequency, but it doesn't make enough R after a mid-IB stop.
 - **H14** loses badly in era A (10% win rate) and in B. Its positive 2025-26 is the same trap as H12. Together with H12: after a v1 stop-out, neither the same direction nor the opposite pays. The stopped day is best left alone.
 - Budget: ADR 0007 has used 4 of 8 (H11–H14). DSR count is now N = 30.
+
+## H15: IB formation-order filter on v3's 60-minute Leg (ADR 0007 budget, registered 2026-10-14, before the run)
+Source: H13's closest-miss result plus the IB studies behind it. The sequence in which the IB high and low printed is information v3 doesn't use. H13 lost as a stand-alone Member, so this uses only its information, as a Filter.
+- **Kind:** Filter, on Ensemble v3's **60-minute Leg only**. The 5-, 15- and 30-minute Legs are unchanged.
+- **Rule (fixed):**
+  - A 60-minute Leg long is taken only if the IB (09:30–10:29) **low printed before its high**.
+  - A short is taken only if the **high printed first**.
+  - If both printed on the same bar, the Leg is unchanged.
+  - This is known at 10:29 close, before the Leg's 10:30 entry.
+- **Pass bar (ADR 0006 Filter rules):** beat v3 on Score, Sharpe (≥) **and** Prop Score in era A and era B. 2025-26 is information only.
+- **Information only (cannot rescue a fail):**
+  - also apply the rule to the 30-minute Leg, using its own 30-minute range;
+  - add H13's quadrant condition (10:29 close in the top quarter for longs, bottom quarter for shorts);
+  - the 60-minute Leg's R per trade split by agree / disagree.
