@@ -235,3 +235,15 @@ Source: QuantFlowLabs ORB Suite's "controlled second trade" ([[QuantFlowLabs ORB
 - **Exits:** ORB v1's own exits: stop 0.10 × ATR14, target 10R, no trail, flat 15:59. Costs as everywhere (0.83 bp, min 0.5 pt). As in the other Members (`level_trade`), a trade is skipped if its stop is under 4× the round-trip cost.
 - **Pass bar (ADR 0006 Member rules):** in era A and era B, corr with v3 ≤ 0.3, the Member alone has Score > 0, and v3 + Member beats v3 on Score and Prop Score. 2025-26 is information only.
 - **Information only (cannot rescue a fail):** v1 + Member vs v1 (ORB v1 is the live prop plan). Plateau: cutoff 60 / 180, stop 0.05 / 0.15 ATR.
+
+### H12 verdict (run 2026-10-14, `research/second_trade.py`, output `results/h12_second_trade.txt`): **FAIL** ❌
+| Era | Member alone Sharpe | corr v3 | v3 + M Score | v3 Score | v3 + M Prop | v3 Prop |
+|---|---|---|---|---|---|---|
+| A 2003-15 | +0.44 | +0.15 | 793 | 1,237 | $152 | $135 |
+| B 2016-24 | **−0.76** | +0.11 | 1,303 | 3,527 | $163 | $379 |
+| 2025-26 (info) | +0.05 | +0.11 | 1,090 | 2,294 | −$11 | −$16 |
+
+- The re-entry loses on its own in era B (292 trades, win rate 15%). Every plateau variant fails too.
+- **Trap worth naming:** v1 + re-entry has a higher Prop Score in 2025-26 ($565 vs $364) but a lower Sharpe and Score in B (1.08 vs 1.47). Adopting it because of 2025-26 would be selection on a spent period.
+- **Reading:** a stopped v1 trade is information. The day's first move failed, and chasing the same direction again doesn't pay on NQ.
+- Budget: ADR 0007 has used 2 of 8 (H11, H12). DSR count is now N = 20.
