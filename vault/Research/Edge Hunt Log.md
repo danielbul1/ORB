@@ -206,3 +206,24 @@ Run order: H7, H8, then H1–H6, then H9, H10. If none pass, Ensemble v3 stays t
 - Consistent with Round 1: GEX describes volatility, not ORB persistence (FlashAlpha: ρ → −0.03 after VIX + IV controls).
 - Also note: v3 in 2025-26 still has Sharpe 0.72 / Score 2,294 by Score; it is the Prop Score that is ≈ −$16/mo. So "the edge is dead" is too strong. The problem is that the edge in 2025-26 is too weak for the Lucid 150K rules.
 - Budget: ADR 0007 has used 1 of 8. DSR count is now N = 15.
+
+## ORB v1 robustness before real money (run 2026-10-14, `research/robust_v1.py`, output `results/robust_v1.txt`)
+Frozen ORB v1, no rule chosen, so no Hypothesis is spent. Pass bars were written into the script before the run. Data re-pulled from the LSE vault (NQ.F 2016-05 → 2026-09-28, NAS100/USD 2003-03 → 2016-06); `research/prop_search.py` reproduces `results/prop_search.txt` exactly on it.
+
+**Verdict by the pre-registered bars: FAIL** (costs 2/3, missed days 4/6, plateau 21/30). Every era-A check fails. That was already known: ORB v1 alone failed the NAS100 holdout (ADR 0002). The bars counted era A anyway, and the verdict stands as written. On NQ (B and 2025-26):
+
+| Test | B 2016-24 | 2025-26 |
+|---|---|---|
+| Base Sharpe / Prop $/mo (Flex 150K 6→3) | 1.47 / $128 | 1.21 / $244 |
+| +1 tick per side, +2 on stops | 1.30 / $103 | 1.15 / $149 |
+| +3 ticks per side, +4 on stops | 1.02 / $63 | 1.04 / $130 |
+| Best 5 trades removed | 405R → 355R | 60R → **10R** |
+| Best 10 trades removed | → 305R | → **−35R** |
+| Random 5% of trades missed (median Sharpe) | 1.43 | 1.21 |
+| One-year drawdown p50 / p90 (bootstrap) | 14.6R / 23.4R | 15.8R / 26.4R |
+| P(year hits the 27.3R kill switch) | 4.7% | 8.8% |
+
+- **Costs:** NQ survives heavy slippage. Prop Score stays positive even at 3 ticks a side.
+- **Concentration:** 2025-26's profit is about 7 trades out of 138. One missed trend day costs about 10R. Execution reliability on big days matters more than average fill quality.
+- **Plateau:** B is a broad plateau (every neighbour Sharpe ≥ 0.81). 2025-26 is peaked: stop 0.125/0.15 ATR gives 0.38/0.22, and OR 10/15 min gives 0.44/0.49. ORB v1's 2025-26 number is honest (frozen before), but it sits on a narrower ridge than B.
+- **Sizing:** at $480/R (6 MNQ, Flex 150K eval, 9.4R max loss), a year's drawdown exceeds 9.4R in about 91% of bootstrap paths. Plan on paid resets; the Prop Score already counts them. The ADR 0005 kill switch (27.3R) fires in 5–9% of normal years, so a trigger means "investigate", not "the Edge is dead".

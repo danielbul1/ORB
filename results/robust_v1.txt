@@ -1,0 +1,45 @@
+ORB v1 robustness (2003-03-21 .. 2026-09-28, 5975 Sessions). Eras: A 2003-15, B 2016-24, spent 25-26
+Frozen params: {'or_min': 5, 'entry': 'candle', 'stop': 'atr', 'stop_x': 0.1, 'target_r': 10, 'body_min': 0.05, 'gap_dir': 'with', 'vwap_side': True} + costs {'cost_bp': 0.83, 'cost_floor': 0.5}
+
+== 1. Costs: extra slippage ticks per side / extra ticks on stop exits
+side stop |             A 2003-15              |             B 2016-24              |            spent 25-26            
+          |  Sharpe    R/yr Prop $/mo     p10 |  Sharpe    R/yr Prop $/mo     p10 |  Sharpe    R/yr Prop $/mo     p10
+   0    0 |   -0.06    -1.4       -33     -74 |    1.47    44.1       128     -12 |    1.21    33.8       244      94
+   1    0 |   -0.54   -13.0       -52     -98 |    1.38    41.2       116     -24 |    1.18    32.8       152      83
+   1    2 |   -0.92   -22.9       -62    -121 |    1.30    38.9       103     -24 |    1.15    32.0       149      80
+   2    2 |   -1.38   -34.5       -79    -146 |    1.20    36.0        91     -27 |    1.11    30.9       137      77
+   2    4 |   -1.73   -44.3       -90    -147 |    1.12    33.7        82     -37 |    1.08    30.1       135      74
+   3    4 |   -2.16   -56.0      -104    -170 |    1.02    30.8        63     -49 |    1.04    29.1       130      57
+
+== 2. Missed trend days
+  A 2003-15: total -18.1R over 873 trades -top1 -28.0R -top2 -37.9R -top5 -67.5R -top10 -116.9R | random 5% missed: Sharpe median -0.05, p5 -0.17 (base -0.06)
+  B 2016-24: total 404.7R over 695 trades -top1 394.7R -top2 384.7R -top5 354.8R -top10 305.1R | random 5% missed: Sharpe median 1.43, p5 1.32 (base 1.47)
+  spent 25-26: total 60.0R over 138 trades -top1 50.0R -top2 40.1R -top5 10.3R -top10 -34.9R | random 5% missed: Sharpe median 1.21, p5 0.94 (base 1.21)
+
+== 3. One-year drawdown paths (block bootstrap, 20-Session blocks, 5,000 paths)
+  A 2003-15: drawdown R p50 23.8 | p90 40.6 | p99 56.3 | P(dd > 9.4R eval max loss) 99.0% | P(dd > 27.3R kill switch) 37.6% | P(losing year) 55.3%
+  B 2016-24: drawdown R p50 14.6 | p90 23.4 | p99 35.0 | P(dd > 9.4R eval max loss) 90.9% | P(dd > 27.3R kill switch) 4.7% | P(losing year) 5.5%
+  spent 25-26: drawdown R p50 15.8 | p90 26.4 | p99 39.4 | P(dd > 9.4R eval max loss) 93.3% | P(dd > 27.3R kill switch) 8.8% | P(losing year) 10.7%
+
+== 4. Plateau: one parameter at a time (Sharpe by era; base first)
+  base                   A 2003-15 -0.06 B 2016-24  1.47 spent 25-26  1.21
+  stop_x = 0.05          A 2003-15 -0.48 B 2016-24  1.15 spent 25-26  0.94
+  stop_x = 0.075         A 2003-15 -0.28 B 2016-24  1.46 spent 25-26  1.23
+  stop_x = 0.125         A 2003-15  0.01 B 2016-24  1.30 spent 25-26  0.38
+  stop_x = 0.15          A 2003-15  0.13 B 2016-24  1.12 spent 25-26  0.22
+  target_r = 5           A 2003-15 -0.26 B 2016-24  1.14 spent 25-26  1.08
+  target_r = 7.5         A 2003-15 -0.19 B 2016-24  1.38 spent 25-26  1.33
+  target_r = 12.5        A 2003-15 -0.10 B 2016-24  1.46 spent 25-26  0.69
+  target_r = 15          A 2003-15 -0.06 B 2016-24  1.41 spent 25-26  0.74
+  body_min = 0.025       A 2003-15 -0.03 B 2016-24  1.43 spent 25-26  0.95
+  body_min = 0.0375      A 2003-15  0.04 B 2016-24  1.48 spent 25-26  1.20
+  body_min = 0.0625      A 2003-15  0.01 B 2016-24  1.47 spent 25-26  1.24
+  body_min = 0.075       A 2003-15 -0.06 B 2016-24  1.39 spent 25-26  1.35
+  or_min = 3             A 2003-15 -0.26 B 2016-24  0.81 spent 25-26  0.59
+  or_min = 10            A 2003-15  0.14 B 2016-24  1.30 spent 25-26  0.44
+  or_min = 15            A 2003-15  0.71 B 2016-24  0.83 spent 25-26  0.49
+
+== Verdict (pass bars in the module docstring)
+  1 costs: FAIL (2/3 checks)
+  2 missed: FAIL (4/6 checks)
+  4 plateau: FAIL (21/30 checks)
