@@ -227,3 +227,11 @@ Frozen ORB v1, no rule chosen, so no Hypothesis is spent. Pass bars were written
 - **Concentration:** 2025-26's profit is about 7 trades out of 138. One missed trend day costs about 10R. Execution reliability on big days matters more than average fill quality.
 - **Plateau:** B is a broad plateau (every neighbour Sharpe ≥ 0.81). 2025-26 is peaked: stop 0.125/0.15 ATR gives 0.38/0.22, and OR 10/15 min gives 0.44/0.49. ORB v1's 2025-26 number is honest (frozen before), but it sits on a narrower ridge than B.
 - **Sizing:** at $480/R (6 MNQ, Flex 150K eval, 9.4R max loss), a year's drawdown exceeds 9.4R in about 91% of bootstrap paths. Plan on paid resets; the Prop Score already counts them. The ADR 0005 kill switch (27.3R) fires in 5–9% of normal years, so a trigger means "investigate", not "the Edge is dead".
+
+## H12: second-chance re-entry after an ORB v1 stop-out (ADR 0007 budget, registered 2026-10-14, before the run)
+Source: QuantFlowLabs ORB Suite's "controlled second trade" ([[QuantFlowLabs ORB]]; closed source, so only the described idea is used). Motivation from our own data: 77% of ORB v1 trades are stopped, 38% within 5 minutes, and 23% of stopped trades were first up ≥ 2R. Some stop-outs are noise on days that still trend. The VIX proxy mentioned in ADR 0007 was never registered and moves to a later number.
+- **Kind:** Portfolio Member.
+- **Rule (fixed):** On a Session where frozen ORB v1 traded and exited by its stop, arm one re-entry. After the stop-out bar, the first 1-minute bar up to bar 120 (11:30) that *closes* beyond the 5-minute OR extreme on the original side (long: close > OR high; short: close < OR low) triggers an entry in the original direction at the next bar's open.
+- **Exits:** ORB v1's own exits: stop 0.10 × ATR14, target 10R, no trail, flat 15:59. Costs as everywhere (0.83 bp, min 0.5 pt). As in the other Members (`level_trade`), a trade is skipped if its stop is under 4× the round-trip cost.
+- **Pass bar (ADR 0006 Member rules):** in era A and era B, corr with v3 ≤ 0.3, the Member alone has Score > 0, and v3 + Member beats v3 on Score and Prop Score. 2025-26 is information only.
+- **Information only (cannot rescue a fail):** v1 + Member vs v1 (ORB v1 is the live prop plan). Plateau: cutoff 60 / 180, stop 0.05 / 0.15 ATR.
