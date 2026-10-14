@@ -269,3 +269,13 @@ Only the described ideas are used, never code. Both are Portfolio Members under 
 - Entry: the *opposite* direction at the open of bar x + 1.
 - Exits: ORB v1's own: stop 0.10 × ATR14, target 10R, no trail, flat 15:59. One per Session.
 - Plateau: cutoff 60 / 180; stop 0.05 / 0.15 ATR.
+
+### H13 and H14 verdicts (run 2026-10-14, `research/ib_reverse.py`, output `results/h13_h14_ib_reverse.txt`): both **FAIL** ❌
+| | A alone Sharpe | B alone Sharpe | 2025-26 alone (info) | corr v3 (B) | v3 + M Score (B) vs v3 | Prop (B) vs v3 |
+|---|---|---|---|---|---|---|
+| H13 IB quadrant | −0.03 | +0.51 | +0.32 | +0.12 | 2,448 vs 3,527 | $331 vs $379 |
+| H14 stop-and-reverse | **−1.40** | −0.29 | +0.61 | 0.00 | 1,213 vs 3,527 | $136 vs $379 |
+
+- **H13** is the closest miss so far. It is positive on its own in B (Sharpe 0.51, 869 trades) and in 2025-26, uncorrelated with v3, and the zone-0.80 plateau has B Sharpe 0.71. But it is zero in era A, and adding it at full size dilutes v3 on Score and Prop. The vendor's "~89% breaks first" is real as a frequency, but it doesn't make enough R after a mid-IB stop.
+- **H14** loses badly in era A (10% win rate) and in B. Its positive 2025-26 is the same trap as H12. Together with H12: after a v1 stop-out, neither the same direction nor the opposite pays. The stopped day is best left alone.
+- Budget: ADR 0007 has used 4 of 8 (H11–H14). DSR count is now N = 30.
