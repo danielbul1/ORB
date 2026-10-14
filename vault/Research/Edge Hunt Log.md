@@ -293,3 +293,15 @@ Source: H13's closest-miss result plus the IB studies behind it. The sequence in
   - also apply the rule to the 30-minute Leg, using its own 30-minute range;
   - add H13's quadrant condition (10:29 close in the top quarter for longs, bottom quarter for shorts);
   - the 60-minute Leg's R per trade split by agree / disagree.
+
+### H15 verdict (run 2026-10-14, `research/ib_filter.py`, output `results/h15_ib_filter.txt`): **FAIL** ❌ (the filter is nearly a no-op)
+| Era | H15 Score | v3 Score | Sharpe | Prop | 60-min Leg trades removed |
+|---|---|---|---|---|---|
+| A 2003-15 | 1,221 | 1,237 | 0.97 vs 0.98 | $136 vs $135 | 4 of 651 |
+| B 2016-24 | 3,506 | 3,527 | 1.64 vs 1.65 | $377 vs $379 | 3 of 553 |
+| 2025-26 (info) | 2,325 | 2,294 | 0.73 vs 0.72 | −$16 vs −$16 | 1 of 113 |
+
+- **Why it barely binds:** v3's 60-minute Leg already requires a strong move from the open (body ≥ 0.05 ATR, τ ≥ 1, VWAP and EMA side). When the move from the open to 10:29 is strong and upward, the low almost always printed before the high. So formation order is already implied by v3's own gates. It carries no new information *for v3*.
+- The few trades it removes (8 in 23 years) were mostly winners. The quadrant variant passes in B (Score 3,654, Prop $390) but fails in A and in 2025-26. Information only; it cannot rescue the fail.
+- **Process lesson:** before registering a Filter, report how often it binds on the incumbent. A Filter that removes < 1% of trades can't pass and shouldn't spend budget. Check it before each future registration.
+- Budget: ADR 0007 has used 5 of 8 (H11–H15). DSR count is now N = 33.

@@ -1,0 +1,25 @@
+
+=== H15 IB formation-order filter (60-min Leg)
+  A 2003-15    Score   1,221 vs   1,237 | Sharpe  0.97 vs  0.98 | Prop $  136 vs $  135 | trades  1251 vs  1252 | DD 21.3R  [fail]
+  B 2016-24    Score   3,506 vs   3,527 | Sharpe  1.64 vs  1.65 | Prop $  377 vs $  379 | trades  1089 vs  1089 | DD 15.0R  [fail]
+  spent 25-26  Score   2,325 vs   2,294 | Sharpe  0.73 vs  0.72 | Prop $  -16 vs $  -16 | trades   220 vs   220 | DD 9.5R  [info]
+  VERDICT: FAIL
+
+===   info: also on the 30-min Leg
+  A 2003-15    Score   1,217 vs   1,237 | Sharpe  0.97 vs  0.98 | Prop $  138 vs $  135 | trades  1251 vs  1252 | DD 21.3R  [fail]
+  B 2016-24    Score   3,593 vs   3,527 | Sharpe  1.65 vs  1.65 | Prop $  377 vs $  379 | trades  1088 vs  1089 | DD 14.8R  [fail]
+  spent 25-26  Score   2,356 vs   2,294 | Sharpe  0.74 vs  0.72 | Prop $  -16 vs $  -16 | trades   220 vs   220 | DD 9.5R  [info]
+  VERDICT: FAIL
+
+===   info: plus H13 quadrant (60-min Leg)
+  A 2003-15    Score   1,312 vs   1,237 | Sharpe   1.0 vs  0.98 | Prop $  115 vs $  135 | trades  1236 vs  1252 | DD 19.9R  [fail]
+  B 2016-24    Score   3,654 vs   3,527 | Sharpe  1.67 vs  1.65 | Prop $  390 vs $  379 | trades  1083 vs  1089 | DD 14.5R  [PASS]
+  spent 25-26  Score   2,060 vs   2,294 | Sharpe  0.63 vs  0.72 | Prop $  -20 vs $  -16 | trades   220 vs   220 | DD 9.3R  [info]
+  VERDICT: FAIL
+
+  info: 60-min Leg R per trade, order agrees vs disagrees
+    A 2003-15    agree +0.176R (n=647) | disagree +1.537R (n=4)
+    B 2016-24    agree +0.342R (n=550) | disagree +1.952R (n=3)
+    spent 25-26  agree +0.006R (n=112) | disagree -1.050R (n=1)
+
+H15 VERDICT (registered rule only): FAIL | DSR count N = 33
