@@ -1,0 +1,62 @@
+
+=== H13 IB quadrant continuation  (Prop scale 0.51)
+  A 2003-15    alone Score     -15 Sharpe -0.03 trades  1119 win 0.298 | corr +0.12 | v3+M Score     358 vs   1,237 Sharpe 0.55 | Prop $  120 vs $  135 | same-day 494  [fail]
+  B 2016-24    alone Score     612 Sharpe  0.51 trades   869 win 0.305 | corr +0.12 | v3+M Score   2,448 vs   3,527 Sharpe 1.4 | Prop $  331 vs $  379 | same-day 434  [fail]
+  spent 25-26  alone Score     585 Sharpe  0.32 trades   196 win 0.321 | corr +0.16 | v3+M Score   1,393 vs   2,294 Sharpe 0.66 | Prop $   93 vs $  -16 | same-day 109  [info]
+  VERDICT: FAIL
+
+===   plateau zone 0.70  (Prop scale 0.27)
+  A 2003-15    alone Score     -48 Sharpe -0.07 trades  1089 win 0.245 | corr +0.09 | v3+M Score     387 vs   1,237 Sharpe 0.47 | Prop $   22 vs $  135 | same-day 474  [fail]
+  B 2016-24    alone Score     119 Sharpe  0.19 trades   935 win 0.234 | corr +0.11 | v3+M Score   1,119 vs   3,527 Sharpe 1.08 | Prop $  121 vs $  379 | same-day 458  [fail]
+  spent 25-26  alone Score       1 Sharpe   0.0 trades   209 win 0.258 | corr +0.13 | v3+M Score     698 vs   2,294 Sharpe 0.4 | Prop $   19 vs $  -16 | same-day 107  [info]
+  VERDICT: FAIL
+
+===   plateau zone 0.80  (Prop scale 0.46)
+  A 2003-15    alone Score     -11 Sharpe -0.01 trades  1049 win 0.352 | corr +0.14 | v3+M Score     586 vs   1,237 Sharpe 0.61 | Prop $   81 vs $  135 | same-day 479  [fail]
+  B 2016-24    alone Score     871 Sharpe  0.71 trades   788 win 0.362 | corr +0.18 | v3+M Score   2,280 vs   3,527 Sharpe 1.55 | Prop $  210 vs $  379 | same-day 405  [fail]
+  spent 25-26  alone Score     542 Sharpe  0.37 trades   183 win 0.377 | corr +0.15 | v3+M Score   1,328 vs   2,294 Sharpe 0.72 | Prop $   53 vs $  -16 | same-day 104  [info]
+  VERDICT: FAIL
+
+===   plateau window to 11:00  (Prop scale 0.52)
+  A 2003-15    alone Score      60 Sharpe  0.11 trades   950 win 0.303 | corr +0.12 | v3+M Score     435 vs   1,237 Sharpe 0.67 | Prop $  111 vs $  135 | same-day 408  [fail]
+  B 2016-24    alone Score     552 Sharpe   0.5 trades   746 win 0.303 | corr +0.12 | v3+M Score   2,394 vs   3,527 Sharpe 1.41 | Prop $  332 vs $  379 | same-day 359  [fail]
+  spent 25-26  alone Score   1,615 Sharpe  0.81 trades   159 win 0.333 | corr +0.13 | v3+M Score   2,930 vs   2,294 Sharpe 1.01 | Prop $  175 vs $  -16 | same-day 87  [info]
+  VERDICT: FAIL
+
+===   plateau window to 13:00  (Prop scale 0.46)
+  A 2003-15    alone Score    -108 Sharpe -0.19 trades  1168 win 0.291 | corr +0.12 | v3+M Score     278 vs   1,237 Sharpe 0.43 | Prop $   70 vs $  135 | same-day 522  [fail]
+  B 2016-24    alone Score     513 Sharpe  0.45 trades   911 win 0.302 | corr +0.12 | v3+M Score   2,116 vs   3,527 Sharpe 1.35 | Prop $  281 vs $  379 | same-day 457  [fail]
+  spent 25-26  alone Score     450 Sharpe  0.25 trades   207 win 0.333 | corr +0.15 | v3+M Score   1,352 vs   2,294 Sharpe 0.61 | Prop $   67 vs $  -16 | same-day 115  [info]
+  VERDICT: FAIL
+
+=== H14 stop-and-reverse  (Prop scale 0.44)
+  A 2003-15    alone Score    -150 Sharpe  -1.4 trades   621 win 0.101 | corr +0.02 | v3+M Score    -112 vs   1,237 Sharpe -0.47 | Prop $  -14 vs $  135 | same-day 503  [fail]
+  B 2016-24    alone Score    -169 Sharpe -0.29 trades   491 win 0.147 | corr -0.00 | v3+M Score   1,213 vs   3,527 Sharpe 0.83 | Prop $  136 vs $  379 | same-day 450  [fail]
+  spent 25-26  alone Score   1,890 Sharpe  0.61 trades   100 win 0.2 | corr -0.00 | v3+M Score   3,130 vs   2,294 Sharpe 0.91 | Prop $   24 vs $  -16 | same-day 98  [info]
+  VERDICT: FAIL
+
+===   plateau cutoff 60  (Prop scale 0.52)
+  A 2003-15    alone Score    -149 Sharpe -1.31 trades   577 win 0.099 | corr +0.02 | v3+M Score    -107 vs   1,237 Sharpe -0.39 | Prop $   -9 vs $  135 | same-day 462  [fail]
+  B 2016-24    alone Score    -131 Sharpe -0.17 trades   447 win 0.152 | corr -0.00 | v3+M Score   1,616 vs   3,527 Sharpe 0.95 | Prop $  145 vs $  379 | same-day 406  [fail]
+  spent 25-26  alone Score   2,506 Sharpe   0.8 trades    93 win 0.215 | corr -0.01 | v3+M Score   3,890 vs   2,294 Sharpe 1.07 | Prop $    1 vs $  -16 | same-day 91  [info]
+  VERDICT: FAIL
+
+===   plateau cutoff 180  (Prop scale 0.45)
+  A 2003-15    alone Score    -150 Sharpe -1.36 trades   635 win 0.102 | corr +0.02 | v3+M Score    -108 vs   1,237 Sharpe -0.45 | Prop $  -16 vs $  135 | same-day 516  [fail]
+  B 2016-24    alone Score    -161 Sharpe -0.28 trades   509 win 0.155 | corr -0.00 | v3+M Score   1,267 vs   3,527 Sharpe 0.84 | Prop $  148 vs $  379 | same-day 467  [fail]
+  spent 25-26  alone Score   1,564 Sharpe  0.53 trades   103 win 0.194 | corr -0.01 | v3+M Score   2,898 vs   2,294 Sharpe 0.85 | Prop $   15 vs $  -16 | same-day 101  [info]
+  VERDICT: FAIL
+
+===   plateau stop 0.05  (Prop scale 0.37)
+  A 2003-15    alone Score    -111 Sharpe  -0.4 trades   147 win 0.082 | corr +0.01 | v3+M Score     590 vs   1,237 Sharpe 0.54 | Prop $    2 vs $  135 | same-day 119  [fail]
+  B 2016-24    alone Score    -174 Sharpe -0.48 trades   478 win 0.092 | corr +0.01 | v3+M Score     793 vs   3,527 Sharpe 0.6 | Prop $  108 vs $  379 | same-day 438  [fail]
+  spent 25-26  alone Score   1,273 Sharpe  0.39 trades   100 win 0.13 | corr -0.00 | v3+M Score   2,617 vs   2,294 Sharpe 0.7 | Prop $  -14 vs $  -16 | same-day 98  [info]
+  VERDICT: FAIL
+
+===   plateau stop 0.15  (Prop scale 0.52)
+  A 2003-15    alone Score    -152 Sharpe -1.26 trades   671 win 0.164 | corr +0.02 | v3+M Score     -81 vs   1,237 Sharpe -0.28 | Prop $   -8 vs $  135 | same-day 503  [fail]
+  B 2016-24    alone Score     -65 Sharpe -0.13 trades   491 win 0.216 | corr -0.01 | v3+M Score   1,676 vs   3,527 Sharpe 1.05 | Prop $  250 vs $  379 | same-day 450  [fail]
+  spent 25-26  alone Score    -115 Sharpe  -0.1 trades   100 win 0.23 | corr +0.01 | v3+M Score     879 vs   2,294 Sharpe 0.43 | Prop $  -16 vs $  -16 | same-day 98  [info]
+  VERDICT: FAIL
+
+==== SUMMARY (registered rules only): {'H13': 'FAIL', 'H14': 'FAIL'} | DSR count N = 30

@@ -1,8 +1,9 @@
-"""Parity check: NinjaTrader 8 ORBEnsembleV3 trades vs the Python engine (Ensemble v3), Leg by Leg.
+"""Parity check: NinjaTrader 8 ORBEnsembleV3 / ORBv1 trades vs the Python engine (Ensemble v3 / ORB v1), Leg by Leg.
 
-1. In NinjaTrader: Strategy Analyzer, ORBEnsembleV3 on MNQ (or NQ) 5-minute, ETH or RTH, the last ~30 days.
+1. In NinjaTrader: Strategy Analyzer, ORBEnsembleV3 (or ORBv1) on MNQ (or NQ) 5-minute, ETH or RTH, the last ~30 days.
    Trades tab -> right-click -> Export -> CSV.
-2. python tools/nt_parity.py <nt_trades.csv> [--tz America/New_York] [--bars <1m csv>]
+2. python tools/nt_parity.py <nt_trades.csv> [--rule v3|v1] [--tz America/New_York] [--bars <1m csv>]
+   --rule: v3 (default) for ORBEnsembleV3, v1 for ORBv1 (its single 5-minute Leg is named E5).
    --tz: the time zone NinjaTrader shows (Tools > Options > General). --bars: a 1-minute csv with time,open,
    high,low,close,volume (unix seconds); default downloads recent NQ bars like tools/forward_test.py.
 
@@ -21,7 +22,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from orb.backtest import TICK, run  # noqa: E402
 from orb.data import build  # noqa: E402
-from orb.families import ENSEMBLE_MEMBERS, ENSEMBLE_V3  # noqa: E402
+from orb.families import ENSEMBLE_MEMBERS, ENSEMBLE_V3, ORB_V1  # noqa: E402
+
+RULES = {"v3": [(om, {**ENSEMBLE_V3, "or_min": om}) for om in ENSEMBLE_MEMBERS], "v1": [(5, ORB_V1)]}
 
 
 def nt_trades(path, tz):
@@ -36,11 +39,11 @@ def nt_trades(path, tz):
         exit_name=t["Exit name"].astype(str)))
 
 
-def py_trades(bars_csv):
+def py_trades(bars_csv, rule="v3"):
     d = build(bars_csv)
     rows = []
-    for om in ENSEMBLE_MEMBERS:
-        r = run(d, **{**ENSEMBLE_V3, "or_min": om})
+    for om, params in RULES[rule]:
+        r = run(d, **params)
         for i in np.flatnonzero(r["ok"]):
             rows.append(dict(session=str(d.dates[i]), leg=om, dir=int(r["dir"][i]), entry=float(r["entry"][i]),
                              exit=float(r["exit"][i]), reason=str(r["reason"][i])))
@@ -65,12 +68,13 @@ def recent_bars(tmp):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("nt_csv")
+    ap.add_argument("--rule", choices=sorted(RULES), default="v3")
     ap.add_argument("--tz", default="America/New_York")
     ap.add_argument("--bars")
     a = ap.parse_args()
     nt = nt_trades(a.nt_csv, a.tz)
     with tempfile.TemporaryDirectory() as tmp:
-        py, d = py_trades(a.bars or recent_bars(tmp))
+        py, d = py_trades(a.bars or recent_bars(tmp), a.rule)
     # compare only Sessions both sides cover (the engine needs 20 days of warm-up for tau)
     lo, hi = max(nt.session.min(), str(d.dates[25])), min(nt.session.max(), str(d.dates[-1]))
     nt = nt[(nt.session >= lo) & (nt.session <= hi)]

@@ -1,0 +1,52 @@
+
+=== H12 second-chance re-entry  (Prop scale 0.56)
+  A 2003-15    alone Score     447 Sharpe  0.44 trades   406 win 0.204 | corr +0.15 | v3+M Score     793 vs   1,237 Sharpe 0.88 | Prop $  152 vs $  135 | same-day 325  [fail]
+  B 2016-24    alone Score    -217 Sharpe -0.76 trades   292 win 0.154 | corr +0.11 | v3+M Score   1,303 vs   3,527 Sharpe 0.84 | Prop $  163 vs $  379 | same-day 271  [fail]
+  spent 25-26  alone Score      73 Sharpe  0.05 trades    66 win 0.197 | corr +0.11 | v3+M Score   1,090 vs   2,294 Sharpe 0.51 | Prop $  -11 vs $  -16 | same-day 64  [info]
+  VERDICT: FAIL
+  info, v1 + Member vs v1:
+    A 2003-15    Score      89 vs     -24 | Sharpe  0.21 vs -0.06 | Prop $   83 vs $  -38 (v3 sizing) | re-entries 406
+    B 2016-24    Score   2,570 vs   5,143 | Sharpe  1.08 vs  1.47 | Prop $  200 vs $  276 (v3 sizing) | re-entries 292
+    spent 25-26  Score   2,671 vs   4,426 | Sharpe  1.08 vs  1.21 | Prop $  565 vs $  364 (v3 sizing) | re-entries 66
+
+===   plateau cutoff 60  (Prop scale 0.64)
+  A 2003-15    alone Score     636 Sharpe  0.48 trades   313 win 0.198 | corr +0.16 | v3+M Score   1,071 vs   1,237 Sharpe 0.92 | Prop $  180 vs $  135 | same-day 257  [fail]
+  B 2016-24    alone Score    -191 Sharpe -0.58 trades   218 win 0.147 | corr +0.11 | v3+M Score   1,747 vs   3,527 Sharpe 1.01 | Prop $  192 vs $  379 | same-day 203  [fail]
+  spent 25-26  alone Score     453 Sharpe  0.21 trades    48 win 0.188 | corr +0.11 | v3+M Score   2,305 vs   2,294 Sharpe 0.63 | Prop $  -12 vs $  -16 | same-day 47  [info]
+  VERDICT: FAIL
+  info, v1 + Member vs v1:
+    A 2003-15    Score     111 vs     -24 | Sharpe  0.22 vs -0.06 | Prop $   97 vs $  -38 (v3 sizing) | re-entries 313
+    B 2016-24    Score   2,725 vs   5,143 | Sharpe  1.19 vs  1.47 | Prop $  222 vs $  276 (v3 sizing) | re-entries 218
+    spent 25-26  Score   3,796 vs   4,426 | Sharpe  1.17 vs  1.21 | Prop $  312 vs $  364 (v3 sizing) | re-entries 48
+
+===   plateau cutoff 180  (Prop scale 0.50)
+  A 2003-15    alone Score     586 Sharpe   0.5 trades   447 win 0.21 | corr +0.14 | v3+M Score     936 vs   1,237 Sharpe 0.92 | Prop $  154 vs $  135 | same-day 360  [fail]
+  B 2016-24    alone Score    -216 Sharpe -0.55 trades   331 win 0.169 | corr +0.09 | v3+M Score   1,275 vs   3,527 Sharpe 0.89 | Prop $  144 vs $  379 | same-day 310  [fail]
+  spent 25-26  alone Score     151 Sharpe  0.11 trades    70 win 0.214 | corr +0.12 | v3+M Score   1,174 vs   2,294 Sharpe 0.54 | Prop $  -11 vs $  -16 | same-day 68  [info]
+  VERDICT: FAIL
+  info, v1 + Member vs v1:
+    A 2003-15    Score     109 vs     -24 | Sharpe  0.26 vs -0.06 | Prop $   76 vs $  -38 (v3 sizing) | re-entries 447
+    B 2016-24    Score   2,589 vs   5,143 | Sharpe  1.12 vs  1.47 | Prop $  333 vs $  276 (v3 sizing) | re-entries 331
+    spent 25-26  Score   2,741 vs   4,426 | Sharpe  1.11 vs  1.21 | Prop $  564 vs $  364 (v3 sizing) | re-entries 70
+
+===   plateau stop 0.05  (Prop scale 0.39)
+  A 2003-15    alone Score      25 Sharpe  0.03 trades    89 win 0.124 | corr +0.05 | v3+M Score   1,138 vs   1,237 Sharpe 0.81 | Prop $   33 vs $  135 | same-day 71  [fail]
+  B 2016-24    alone Score     -87 Sharpe -0.15 trades   289 win 0.111 | corr +0.04 | v3+M Score   1,236 vs   3,527 Sharpe 0.99 | Prop $  121 vs $  379 | same-day 268  [fail]
+  spent 25-26  alone Score     604 Sharpe  0.35 trades    66 win 0.136 | corr +0.06 | v3+M Score   1,758 vs   2,294 Sharpe 0.68 | Prop $   18 vs $  -16 | same-day 64  [info]
+  VERDICT: FAIL
+  info, v1 + Member vs v1:
+    A 2003-15    Score     -19 vs     -24 | Sharpe -0.04 vs -0.06 | Prop $  -16 vs $  -38 (v3 sizing) | re-entries 89
+    B 2016-24    Score   2,854 vs   5,143 | Sharpe  1.19 vs  1.47 | Prop $  156 vs $  276 (v3 sizing) | re-entries 289
+    spent 25-26  Score   3,086 vs   4,426 | Sharpe  1.18 vs  1.21 | Prop $  564 vs $  364 (v3 sizing) | re-entries 66
+
+===   plateau stop 0.15  (Prop scale 0.74)
+  A 2003-15    alone Score     207 Sharpe  0.29 trades   436 win 0.257 | corr +0.15 | v3+M Score     654 vs   1,237 Sharpe 0.83 | Prop $  128 vs $  135 | same-day 325  [fail]
+  B 2016-24    alone Score    -102 Sharpe -0.24 trades   292 win 0.253 | corr +0.14 | v3+M Score   2,375 vs   3,527 Sharpe 1.17 | Prop $  243 vs $  379 | same-day 271  [fail]
+  spent 25-26  alone Score     311 Sharpe  0.22 trades    66 win 0.303 | corr +0.08 | v3+M Score   1,987 vs   2,294 Sharpe 0.68 | Prop $   26 vs $  -16 | same-day 64  [info]
+  VERDICT: FAIL
+  info, v1 + Member vs v1:
+    A 2003-15    Score      40 vs     -24 | Sharpe   0.1 vs -0.06 | Prop $   86 vs $  -38 (v3 sizing) | re-entries 436
+    B 2016-24    Score   3,324 vs   5,143 | Sharpe   1.3 vs  1.47 | Prop $  241 vs $  276 (v3 sizing) | re-entries 292
+    spent 25-26  Score   3,515 vs   4,426 | Sharpe  1.21 vs  1.21 | Prop $  647 vs $  364 (v3 sizing) | re-entries 66
+
+H12 VERDICT (registered rule only): FAIL  | DSR count N = 20

@@ -1,8 +1,9 @@
 """Forward Test recorder (ADR 0001): run the frozen ORB v1 on the latest NQ bars and log every Session
 from 2026-09-30 on to results/forward_log.csv. Idempotent; run it any time after the close.
 
-Runs with the Model venv (it has the `lse-data` client):
-  C:/Users/user/Model/.venv/Scripts/python tools/forward_test.py
+Needs the `lse-data` client and LSE_API_KEY (the environment, or Model's .env on the Windows machine):
+  C:/Users/user/Model/.venv/Scripts/python tools/forward_test.py   (Windows)
+  python tools/forward_test.py                                    (cloud: pip install "lse-data[frames]" pyarrow)
 """
 import sys
 import tempfile
@@ -13,27 +14,29 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, r"C:\Users\user\Model")
-from dotenv import load_dotenv  # noqa: E402
+sys.path.insert(0, str(ROOT / "tools"))
 from lse import LSE  # noqa: E402
 
-from engine.data_lse import download  # noqa: E402
 from orb.backtest import run  # noqa: E402
 from orb.data import build  # noqa: E402
 from orb.families import ENSEMBLE_MEMBERS, ENSEMBLE_V3, ORB_V1  # noqa: E402
+from pull_lse_vault import pull  # noqa: E402
 
 START = np.datetime64("2026-09-30")
 LOG = ROOT / "results" / "forward_log.csv"
 MNQ_USD = 2.0
 
-load_dotenv(r"C:\Users\user\Model\.env")
+try:
+    from dotenv import load_dotenv
+    load_dotenv(r"C:\Users\user\Model\.env")  # no-op where the file doesn't exist (cloud: LSE_API_KEY is set)
+except ImportError:
+    pass
 today = pd.Timestamp.now(tz="America/New_York").normalize()
 with tempfile.TemporaryDirectory() as tmp:
+    start = f"{today - pd.Timedelta(days=45):%Y-%m-%d}"
+    end = f"{today + pd.Timedelta(days=1):%Y-%m-%d}"
     csv = Path(tmp) / "nq_recent.csv"
-    try:
-        download(LSE(), "NQ.F", "1m", f"{today - pd.Timedelta(days=45):%Y-%m-%d}", f"{today:%Y-%m-%d}", out=csv)
-    except ValueError:
-        pass  # Model's downloader prints the path relative to Model/ after writing; the file is already saved
+    pull(LSE(), [("NQ.F", "futures", start, None)], end, tmp).to_csv(csv, index=False)
     d = build(csv)
 
 res = run(d, **ORB_V1)
@@ -64,14 +67,16 @@ log.to_csv(LOG, index=False)
 t = log[log.traded == True]  # noqa: E712
 print(f"Forward Test: {len(log)} Sessions | ORB v1: {len(t)} trades, total {t.r.sum():+.2f}R, "
       f"win {(t.r > 0).mean() if len(t) else 0:.0%} | Ensemble v3: total {log.ensemble_v3_r.sum():+.2f}R")
+# A weekday the data drops (a vendor gap, or a holiday) is not a no-trade day: say so, so it can be checked by hand.
+weekdays = np.array(pd.bdate_range(str(START), str(d.dates[-1])).strftime("%Y-%m-%d"), dtype="datetime64[D]")
+logged = set(np.array(log.session.astype(str), dtype="datetime64[D]"))
+missing = [str(x) for x in weekdays if x not in logged]
+if missing:
+    print(f"WARNING: weekdays with no usable Session data (vendor gap or holiday; check by hand): {', '.join(missing)}")
 
 # Forward arm of the Jev news test (ADR 0003 addendum): logs only, never changes a trade.
 try:
-    from tools.forward_news import update as news_update
-except ImportError:
-    sys.path.insert(0, str(ROOT / "tools"))
     from forward_news import update as news_update
-try:
     news_update(d)
 except Exception as e:  # news must never break the Forward Test log
     print(f"Forward news failed: {e}")

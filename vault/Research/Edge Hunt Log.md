@@ -206,3 +206,102 @@ Run order: H7, H8, then H1–H6, then H9, H10. If none pass, Ensemble v3 stays t
 - Consistent with Round 1: GEX describes volatility, not ORB persistence (FlashAlpha: ρ → −0.03 after VIX + IV controls).
 - Also note: v3 in 2025-26 still has Sharpe 0.72 / Score 2,294 by Score; it is the Prop Score that is ≈ −$16/mo. So "the edge is dead" is too strong. The problem is that the edge in 2025-26 is too weak for the Lucid 150K rules.
 - Budget: ADR 0007 has used 1 of 8. DSR count is now N = 15.
+
+## ORB v1 robustness before real money (run 2026-10-14, `research/robust_v1.py`, output `results/robust_v1.txt`)
+Frozen ORB v1, no rule chosen, so no Hypothesis is spent. Pass bars were written into the script before the run. Data re-pulled from the LSE vault (NQ.F 2016-05 → 2026-09-28, NAS100/USD 2003-03 → 2016-06); `research/prop_search.py` reproduces `results/prop_search.txt` exactly on it.
+
+**Verdict by the pre-registered bars: FAIL** (costs 2/3, missed days 4/6, plateau 21/30). Every era-A check fails. That was already known: ORB v1 alone failed the NAS100 holdout (ADR 0002). The bars counted era A anyway, and the verdict stands as written. On NQ (B and 2025-26):
+
+| Test | B 2016-24 | 2025-26 |
+|---|---|---|
+| Base Sharpe / Prop $/mo (Flex 150K 6→3) | 1.47 / $128 | 1.21 / $244 |
+| +1 tick per side, +2 on stops | 1.30 / $103 | 1.15 / $149 |
+| +3 ticks per side, +4 on stops | 1.02 / $63 | 1.04 / $130 |
+| Best 5 trades removed | 405R → 355R | 60R → **10R** |
+| Best 10 trades removed | → 305R | → **−35R** |
+| Random 5% of trades missed (median Sharpe) | 1.43 | 1.21 |
+| One-year drawdown p50 / p90 (bootstrap) | 14.6R / 23.4R | 15.8R / 26.4R |
+| P(year hits the 27.3R kill switch) | 4.7% | 8.8% |
+
+- **Costs:** NQ survives heavy slippage. Prop Score stays positive even at 3 ticks a side.
+- **Concentration:** 2025-26's profit is about 7 trades out of 138. One missed trend day costs about 10R. Execution reliability on big days matters more than average fill quality.
+- **Plateau:** B is a broad plateau (every neighbour Sharpe ≥ 0.81). 2025-26 is peaked: stop 0.125/0.15 ATR gives 0.38/0.22, and OR 10/15 min gives 0.44/0.49. ORB v1's 2025-26 number is honest (frozen before), but it sits on a narrower ridge than B.
+- **Sizing:** at $480/R (6 MNQ, Flex 150K eval, 9.4R max loss), a year's drawdown exceeds 9.4R in about 91% of bootstrap paths. Plan on paid resets; the Prop Score already counts them. The ADR 0005 kill switch (27.3R) fires in 5–9% of normal years, so a trigger means "investigate", not "the Edge is dead".
+
+## H12: second-chance re-entry after an ORB v1 stop-out (ADR 0007 budget, registered 2026-10-14, before the run)
+Source: QuantFlowLabs ORB Suite's "controlled second trade" ([[QuantFlowLabs ORB]]; closed source, so only the described idea is used). Motivation from our own data: 77% of ORB v1 trades are stopped, 38% within 5 minutes, and 23% of stopped trades were first up ≥ 2R. Some stop-outs are noise on days that still trend. The VIX proxy mentioned in ADR 0007 was never registered and moves to a later number.
+- **Kind:** Portfolio Member.
+- **Rule (fixed):** On a Session where frozen ORB v1 traded and exited by its stop, arm one re-entry. After the stop-out bar, the first 1-minute bar up to bar 120 (11:30) that *closes* beyond the 5-minute OR extreme on the original side (long: close > OR high; short: close < OR low) triggers an entry in the original direction at the next bar's open.
+- **Exits:** ORB v1's own exits: stop 0.10 × ATR14, target 10R, no trail, flat 15:59. Costs as everywhere (0.83 bp, min 0.5 pt). As in the other Members (`level_trade`), a trade is skipped if its stop is under 4× the round-trip cost.
+- **Pass bar (ADR 0006 Member rules):** in era A and era B, corr with v3 ≤ 0.3, the Member alone has Score > 0, and v3 + Member beats v3 on Score and Prop Score. 2025-26 is information only.
+- **Information only (cannot rescue a fail):** v1 + Member vs v1 (ORB v1 is the live prop plan). Plateau: cutoff 60 / 180, stop 0.05 / 0.15 ATR.
+
+### H12 verdict (run 2026-10-14, `research/second_trade.py`, output `results/h12_second_trade.txt`): **FAIL** ❌
+| Era | Member alone Sharpe | corr v3 | v3 + M Score | v3 Score | v3 + M Prop | v3 Prop |
+|---|---|---|---|---|---|---|
+| A 2003-15 | +0.44 | +0.15 | 793 | 1,237 | $152 | $135 |
+| B 2016-24 | **−0.76** | +0.11 | 1,303 | 3,527 | $163 | $379 |
+| 2025-26 (info) | +0.05 | +0.11 | 1,090 | 2,294 | −$11 | −$16 |
+
+- The re-entry loses on its own in era B (292 trades, win rate 15%). Every plateau variant fails too.
+- **Trap worth naming:** v1 + re-entry has a higher Prop Score in 2025-26 ($565 vs $364) but a lower Sharpe and Score in B (1.08 vs 1.47). Adopting it because of 2025-26 would be selection on a spent period.
+- **Reading:** a stopped v1 trade is information. The day's first move failed, and chasing the same direction again doesn't pay on NQ.
+- Budget: ADR 0007 has used 2 of 8 (H11, H12). DSR count is now N = 20.
+
+## H13 and H14 (ADR 0007 budget, registered 2026-10-14, before the run)
+Source: public descriptions of closed-source NQ products, collected 2026-10-14:
+- H13: "NQ IB Quadrant & Probability Framework" (invite-only), plus the independent "IB Statistical Mapping" study.
+- H14: the reverse-after-first-stop toggle in "NQ ORB" (blinkzssss), plus edgeful's NQ double-break rate of about 40%.
+
+Only the described ideas are used, never code. Both are Portfolio Members under the ADR 0006 Member pass bar: in era A and era B, corr with v3 ≤ 0.3, the Member alone has Score > 0, and v3 + Member beats v3 on Score and Prop Score. 2025-26 is information only. Costs are as everywhere, and a trade is skipped if its stop is under 4× the round-trip cost (`level_trade`). Plateau checks are information only.
+
+**H13: IB quadrant continuation**
+- Setup: IB = bars 09:30–10:29, with high IBH, low IBL and range IBR.
+  - **Long** if the 10:29 close ≥ IBL + 0.75·IBR **and** the IB low printed before the IB high.
+  - **Short** if the 10:29 close ≤ IBL + 0.25·IBR **and** the IB high printed first.
+- Entry: limit at that level (IBL + 0.75·IBR for longs, IBL + 0.25·IBR for shorts), on its first touch from 10:30 to 12:00. The fill is at the level, or at the bar's open if that open is better.
+- Stop: IB midpoint.
+- Targets: half the position at IBH + 0.5·IBR, half at IBH + 1.0·IBR (mirrored for shorts). No trail; flat at 15:59.
+- Plateau: zone 0.70 / 0.80; entry window to 11:00 / 13:00.
+
+**H14: stop-and-reverse after an ORB v1 stop-out** (H12's opposite)
+- Trigger: on a Session where frozen ORB v1 exited by its stop on bar x, with x + 1 ≤ bar 120 (11:30).
+- Entry: the *opposite* direction at the open of bar x + 1.
+- Exits: ORB v1's own: stop 0.10 × ATR14, target 10R, no trail, flat 15:59. One per Session.
+- Plateau: cutoff 60 / 180; stop 0.05 / 0.15 ATR.
+
+### H13 and H14 verdicts (run 2026-10-14, `research/ib_reverse.py`, output `results/h13_h14_ib_reverse.txt`): both **FAIL** ❌
+| | A alone Sharpe | B alone Sharpe | 2025-26 alone (info) | corr v3 (B) | v3 + M Score (B) vs v3 | Prop (B) vs v3 |
+|---|---|---|---|---|---|---|
+| H13 IB quadrant | −0.03 | +0.51 | +0.32 | +0.12 | 2,448 vs 3,527 | $331 vs $379 |
+| H14 stop-and-reverse | **−1.40** | −0.29 | +0.61 | 0.00 | 1,213 vs 3,527 | $136 vs $379 |
+
+- **H13** is the closest miss so far. It is positive on its own in B (Sharpe 0.51, 869 trades) and in 2025-26, uncorrelated with v3, and the zone-0.80 plateau has B Sharpe 0.71. But it is zero in era A, and adding it at full size dilutes v3 on Score and Prop. The vendor's "~89% breaks first" is real as a frequency, but it doesn't make enough R after a mid-IB stop.
+- **H14** loses badly in era A (10% win rate) and in B. Its positive 2025-26 is the same trap as H12. Together with H12: after a v1 stop-out, neither the same direction nor the opposite pays. The stopped day is best left alone.
+- Budget: ADR 0007 has used 4 of 8 (H11–H14). DSR count is now N = 30.
+
+## H15: IB formation-order filter on v3's 60-minute Leg (ADR 0007 budget, registered 2026-10-14, before the run)
+Source: H13's closest-miss result plus the IB studies behind it. The sequence in which the IB high and low printed is information v3 doesn't use. H13 lost as a stand-alone Member, so this uses only its information, as a Filter.
+- **Kind:** Filter, on Ensemble v3's **60-minute Leg only**. The 5-, 15- and 30-minute Legs are unchanged.
+- **Rule (fixed):**
+  - A 60-minute Leg long is taken only if the IB (09:30–10:29) **low printed before its high**.
+  - A short is taken only if the **high printed first**.
+  - If both printed on the same bar, the Leg is unchanged.
+  - This is known at 10:29 close, before the Leg's 10:30 entry.
+- **Pass bar (ADR 0006 Filter rules):** beat v3 on Score, Sharpe (≥) **and** Prop Score in era A and era B. 2025-26 is information only.
+- **Information only (cannot rescue a fail):**
+  - also apply the rule to the 30-minute Leg, using its own 30-minute range;
+  - add H13's quadrant condition (10:29 close in the top quarter for longs, bottom quarter for shorts);
+  - the 60-minute Leg's R per trade split by agree / disagree.
+
+### H15 verdict (run 2026-10-14, `research/ib_filter.py`, output `results/h15_ib_filter.txt`): **FAIL** ❌ (the filter is nearly a no-op)
+| Era | H15 Score | v3 Score | Sharpe | Prop | 60-min Leg trades removed |
+|---|---|---|---|---|---|
+| A 2003-15 | 1,221 | 1,237 | 0.97 vs 0.98 | $136 vs $135 | 4 of 651 |
+| B 2016-24 | 3,506 | 3,527 | 1.64 vs 1.65 | $377 vs $379 | 3 of 553 |
+| 2025-26 (info) | 2,325 | 2,294 | 0.73 vs 0.72 | −$16 vs −$16 | 1 of 113 |
+
+- **Why it barely binds:** v3's 60-minute Leg already requires a strong move from the open (body ≥ 0.05 ATR, τ ≥ 1, VWAP and EMA side). When the move from the open to 10:29 is strong and upward, the low almost always printed before the high. So formation order is already implied by v3's own gates. It carries no new information *for v3*.
+- The few trades it removes (8 in 23 years) were mostly winners. The quadrant variant passes in B (Score 3,654, Prop $390) but fails in A and in 2025-26. Information only; it cannot rescue the fail.
+- **Process lesson:** before registering a Filter, report how often it binds on the incumbent. A Filter that removes < 1% of trades can't pass and shouldn't spend budget. Check it before each future registration.
+- Budget: ADR 0007 has used 5 of 8 (H11–H15). DSR count is now N = 33.
